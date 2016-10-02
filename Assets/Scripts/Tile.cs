@@ -43,11 +43,13 @@ public class Tile : MonoBehaviour {
 	public void setLaman(Character c){
 		if (pointVal == 4)
 			c.changeColor (1);
-		if (c != null)
+		if (c != null) {
 			featureVector [3] = c.getTeamID ();
-		else
+			featureVector [2] = 0;
+		} else {
 			featureVector [3] = -2;
-		featureVector[2] = 0;
+			featureVector [2] = 1;
+		}
 		laman = c;
 	}
 

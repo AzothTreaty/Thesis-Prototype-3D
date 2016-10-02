@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -93,6 +94,10 @@ public class GameManager : MonoBehaviour{
 			}
 			maps.Add (tempMapInput);
 		}
+	}
+
+	public int [,] getDisplayInformation(){
+		return map.getEnvironmentDisplay ();
 	}
 
 	public int[,,] getEnvironment(int teamID){
@@ -353,7 +358,7 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 				for (int e = 0; e < 4; e++) {
 					returnVal [q, w, e] = tempoKoTo [e];
 				}
-				returnVal [q, w, 3] = returnVal [q, w, 3] == teamID ? 0 : 1;
+				returnVal [q, w, 3] = returnVal [q, w, 3] == teamID ? 0 : returnVal[q, w, 2] == 0 ? 0 : 1;
 			}
 		}
 		return returnVal;
@@ -423,8 +428,10 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 				}
 				tiles [w, q].AddComponent<Tile> ();
 				tiles [w, q].GetComponent<Tile> ().initialize (blueprint[q, w], w, q);
-				if (blueprint [q, w] == 2)
-					tiles [w, q].GetComponent<Tile> ().setSpawn (spawnIndexKo++);
+				if (blueprint [q, w] == 2){
+					tiles [w, q].GetComponent<Tile> ().setSpawn (spawnIndexKo == 1 ? 3 : spawnIndexKo == 2 ? 1 : spawnIndexKo == 3 ? 2 : 0);
+					spawnIndexKo++;
+				}
 				curPos.x = initX;
 				curPos.y = initY;
 				tiles [w, q].transform.position = curPos;
@@ -779,13 +786,13 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 	protected int currentAction;
 	float timeCur;
 	Team toControl;
-	public void init(GameManager g, int teamNumToControl){
+	public virtual void init(GameManager g, int teamNumToControl){
 		gm = g;
 		timeCur = 0;
 		currentAction = 0;//idle
 		toControl = gm.gameObject.GetComponents<Team> () [teamNumToControl];
 	}
-	public virtual void think(int[,,] information){//choose a currentAction
+	public virtual void think(int[,] information){//choose a currentAction
 		currentAction = Random.Range (0, 3);
 	}
 	public virtual void learn(GameObject[] information, int action){
@@ -794,7 +801,7 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 	void Update(){
 		if (!toControl.isPaused ()) {// no sense updating if the team is paused
 			if (timeCur > 1) {//temporary lang to, dapat laging kapag tapos na mag-animate na gumagalaw ang barkada saka siya ulit mag-iisip
-				think (gm.getEnvironment(toControl.getID()));
+				think (gm.getDisplayInformation());
 				doIt ();
 				timeCur = 0;
 			} else {
@@ -808,5 +815,21 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 }
 
 public class DQNAI : AI{
-
+	Text forShow;
+	public override void init (GameManager g, int teamNumToControl){
+		base.init (g, teamNumToControl);
+		forShow = GameObject.Find ("AIText").GetComponent<Text>();
+	}
+	public override void think(int [,] info){//don't use the feature verctors yet
+		currentAction = 0;
+		string forText = "";
+		for (int q = 0; q < info.GetLength (1); q++) {
+			for (int w = 0; w < info.GetLength (0); w++) {
+				forText += info [w, q] + " ";
+			}
+			forText += "\n";
+		}
+		Debug.Log (forText);
+		forShow.text = forText;
+	}
 }
