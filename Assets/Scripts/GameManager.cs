@@ -11,12 +11,13 @@ public static class UtilsKo{
 
 //actual game termination is seen in checkForTermin() and in roundmanager's update(), gameOver() is called by boths
 public class GameManager : MonoBehaviour{
+	public static List<int[,]> maps;
 	static Map map;
 	Barkada tBC;
 	HUDManager dm;
 	RoundManager rm;
 	bool paused, once;
-	AI ai;
+	DQNAI ai;
 	static GameManager gm;
 	float spawnTime, generalTimer;//generalTimer should not be reset, just modulo it if you want to know if 30 seconds have passed
 	int numTeams;
@@ -34,8 +35,10 @@ public class GameManager : MonoBehaviour{
 		//initialize map
 		this.gameObject.AddComponent<Map> ();
 		map = this.gameObject.GetComponent<Map> ();
+		maps = new List<int[,]> ();
+		readMaps();
 		//map.initialize (30, 20, 4);
-		map.initialize(Map.map1);
+		map.initialize(maps[0]);
 
 		//initialize team
 		numTeams = 2;
@@ -69,9 +72,31 @@ public class GameManager : MonoBehaviour{
 		minimap.AddComponent<MiniMapManager>();
 		minimap.GetComponent<MiniMapManager> ().initMe(map);
 
-		this.gameObject.AddComponent<AI> ();
-		ai = GetComponent<AI> ();
-		ai.init (this);
+		this.gameObject.AddComponent<DQNAI> ();
+		ai = GetComponent<DQNAI> ();
+		ai.init (this, 1);
+	}
+
+	void readMaps(){
+		TextAsset baby = Resources.Load<TextAsset> ("MapsInput");
+		string[] pinakaLabas = baby.text.Split ('|');
+		for (int e = 0; e < pinakaLabas.Length; e++) {
+			//Debug.Log (pinakaLabas [e]);
+			string[] babyKo = pinakaLabas[e].Split ('\n');
+			int[,] tempMapInput = new int[babyKo.Length - 1, babyKo [0].Split (' ').Length];
+			for (int q = 0; q < babyKo.Length - 1; q++) {
+				string[] tempKo = babyKo [q].Split (' ');
+				for (int w = 0; w < tempKo.Length; w++) {
+					//Debug.Log (tempKo [w]);
+					tempMapInput [q, w] = int.Parse (tempKo [w]);
+				}
+			}
+			maps.Add (tempMapInput);
+		}
+	}
+
+	public int[,,] getEnvironment(int teamID){
+		return map.getFeatureVectors (teamID);
 	}
 
 	public float getTimeKo(){//always from zero to 30
@@ -319,6 +344,21 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 		}
 	}
 
+	public int[,,] getFeatureVectors(int teamID){
+		int[,,] returnVal = new int[xQuant, yQuant, 4];
+		int[] tempoKoTo;
+		for (int q = 0; q < xQuant; q++) {
+			for (int w = 0; w < yQuant; w++) {
+				tempoKoTo = tiles [q, w].GetComponent<Tile> ().getFeatureVector ();
+				for (int e = 0; e < 4; e++) {
+					returnVal [q, w, e] = tempoKoTo [e];
+				}
+				returnVal [q, w, 3] = returnVal [q, w, 3] == teamID ? 0 : 1;
+			}
+		}
+		return returnVal;
+	}
+
 	public int[,] getEnvironmentDisplay(){
 		int[,] returnVal = new int[xQuant, yQuant];
 		Tile temp;
@@ -352,12 +392,12 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 		Object chairOrig = Resources.Load ("Prefabs/SeatPrefab");
 		Object tableOrig = Resources.Load ("Prefabs/Table");
 		float initY = 0.0f;
+		int spawnIndexKo = 0;
 		Vector3 curPos = new Vector3(0, 0, 0);
 		for (int q = 0; q < yQuant; q++) {
 			float initX = 0.0f;
 			for (int w = 0; w < xQuant; w++) {
 				if (tiles [w, q] != null) continue;
-				int typeOfTile = 0;
 				switch (blueprint [q, w]) {//for graphical tile instantiation
 				case 0://normal tile
 					tiles [w, q] = (GameObject)Instantiate (backOrig);
@@ -366,20 +406,16 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 					break;
 				case 2://spawnpoint
 					tiles [w, q] = (GameObject)Instantiate (backOrig);
-					typeOfTile = 2;
 					spawnPoints[spawnIndex++] = tiles[w, q];
 					break;
 				case 3://table entry point, signals start of table generation
 					tiles [w, q] = (GameObject)Instantiate (backOrig);
-					typeOfTile = 3;
 					break;
 				case 4://chair
 					tiles [w, q] = (GameObject)Instantiate (chairOrig);
-					typeOfTile = 4;
 					break;
 				case 5://table
 					tiles [w, q] = (GameObject)Instantiate (tableOrig);
-					typeOfTile = 5;
 					break;
 				default:
 					Debug.Log ("Wtf is this?");
@@ -387,6 +423,8 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 				}
 				tiles [w, q].AddComponent<Tile> ();
 				tiles [w, q].GetComponent<Tile> ().initialize (blueprint[q, w], w, q);
+				if (blueprint [q, w] == 2)
+					tiles [w, q].GetComponent<Tile> ().setSpawn (spawnIndexKo++);
 				curPos.x = initX;
 				curPos.y = initY;
 				tiles [w, q].transform.position = curPos;
@@ -628,44 +666,21 @@ public class Table{
 	public Table(GameObject[] nb, int xS, int yS){//ayusin ang pointVal flags ng tiles
 		tableTiles = nb;
 		entryPoints = new GameObject[4];
-		chairs = new GameObject[(xS * 2)+(yS * 2)];
-		availSeats = chairs.Length;
+		List<GameObject> babyChairs = new List<GameObject> ();
 
+		int entryIndexes = 0;
 		for (int q = 0; q < tableTiles.Length; q++) {
+			int getType = tableTiles [q].GetComponent<Tile> ().getPointVal ();
+			if (getType == 3) {
+				entryPoints [entryIndexes++] = tableTiles [q];
+			} else if (getType == 4) {
+				tableTiles [q].GetComponent<Tile> ().setOccupied (false);
+				babyChairs.Add (tableTiles [q]);
+			}
 			tableTiles [q].GetComponent<Tile> ().setTable (this);
 		}
-		//set the entry points
-		entryPoints[0] = tableTiles[0];
-		entryPoints [1] = tableTiles [xS + 1];
-		entryPoints [2] = tableTiles [(yS + 1) * (xS + 2)];
-		entryPoints[3] = tableTiles[tableTiles.Length - 1];
-
-		//set the chairs
-		int index = 0;
-		for(int q = 1; q < xS + 1; q++){
-			chairs [index] = tableTiles [q];
-			Debug.Log (chairs [index].GetComponent<Tile> ().getMapIndex ().x + ", " + chairs [index].GetComponent<Tile> ().getMapIndex ().y + " is a chair1");
-			chairs [index].GetComponent<Tile> ().setPointVal (4);
-			chairs [index++].GetComponent<Tile> ().setOccupied (false);
-		}
-		for (int q = xS + 2; q < ((yS + 1) * (xS + 2)); q += xS + 2) {
-			chairs [index] = tableTiles [q];
-			Debug.Log (chairs [index].GetComponent<Tile> ().getMapIndex ().x + ", " + chairs [index].GetComponent<Tile> ().getMapIndex ().y + " is a chair2");
-			chairs [index].GetComponent<Tile> ().setPointVal (4);
-			chairs [index++].GetComponent<Tile> ().setOccupied (false);
-		}
-		for(int q = (2 * (xS + 1)) + 1; q < ((yS + 1) * (xS + 2)); q += xS + 2){
-			chairs [index] = tableTiles [q];
-			Debug.Log (chairs [index].GetComponent<Tile> ().getMapIndex ().x + ", " + chairs [index].GetComponent<Tile> ().getMapIndex ().y + " is a chair3");
-			chairs [index].GetComponent<Tile> ().setPointVal (4);
-			chairs [index++].GetComponent<Tile> ().setOccupied (false);
-		}
-		for(int q = ((yS + 1) * (xS + 2)) + 1; q < tableTiles.Length - 1; q++){
-			chairs [index] = tableTiles [q];
-			Debug.Log (chairs [index].GetComponent<Tile> ().getMapIndex ().x + ", " + chairs [index].GetComponent<Tile> ().getMapIndex ().y + " is a chair");
-			chairs [index].GetComponent<Tile> ().setPointVal (4);
-			chairs [index++].GetComponent<Tile> ().setOccupied (false);
-		}
+		chairs = babyChairs.ToArray ();
+		availSeats = chairs.Length;
 
 		//take care of strangers
 		int randomBlah = Random.Range(0, (int)(chairs.Length/2));
@@ -764,13 +779,13 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 	protected int currentAction;
 	float timeCur;
 	Team toControl;
-	public void init(GameManager g){
+	public void init(GameManager g, int teamNumToControl){
 		gm = g;
 		timeCur = 0;
 		currentAction = 0;//idle
-		toControl = gm.gameObject.GetComponents<Team> () [1];
+		toControl = gm.gameObject.GetComponents<Team> () [teamNumToControl];
 	}
-	public virtual void think(){//choose a currentAction
+	public virtual void think(int[,,] information){//choose a currentAction
 		currentAction = Random.Range (0, 3);
 	}
 	public virtual void learn(GameObject[] information, int action){
@@ -779,7 +794,7 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 	void Update(){
 		if (!toControl.isPaused ()) {// no sense updating if the team is paused
 			if (timeCur > 1) {//temporary lang to, dapat laging kapag tapos na mag-animate na gumagalaw ang barkada saka siya ulit mag-iisip
-				think ();
+				think (gm.getEnvironment(toControl.getID()));
 				doIt ();
 				timeCur = 0;
 			} else {
@@ -790,4 +805,8 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 	public virtual void doIt(){//interpret the chosen currentAction
 		if (currentAction != 0) gm.move (currentAction, toControl.getBarkada ());
 	}
+}
+
+public class DQNAI : AI{
+
 }
