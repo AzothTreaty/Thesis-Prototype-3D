@@ -75,7 +75,7 @@ public class GameManager : MonoBehaviour{
 
 		this.gameObject.AddComponent<DQNAI> ();
 		ai = GetComponent<DQNAI> ();
-		ai.init (this, 1);
+		ai.init (this, 1, map.getWidth(), map.getHeight());
 	}
 
 	void readMaps(){
@@ -372,7 +372,7 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 				temp = tiles [q, w].GetComponent<Tile> ();
 				if (temp.getLaman () != null) {
 					if (temp.getLaman ().getTeamID () == -1)
-						returnVal [q, w] = -2;
+						returnVal [q, w] = 10;
 					else returnVal [q, w] = temp.getLaman ().getTeamID () + 6;
 				}
 				else{ 
@@ -795,8 +795,8 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 	public virtual void think(int[,] information){//choose a currentAction
 		currentAction = Random.Range (0, 3);
 	}
-	public virtual void learn(GameObject[] information, int action){
-
+	public virtual void learn(int[,] information, int action){
+		
 	}
 	void Update(){
 		if (!toControl.isPaused ()) {// no sense updating if the team is paused
@@ -816,12 +816,50 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 
 public class DQNAI : AI{
 	Text forShow;
-	public override void init (GameManager g, int teamNumToControl){
+	double biasConstant;//actually di ako sure kung kailangan to e
+	List<double[]> weights;
+	List<double[]> qtable;
+	public void init (GameManager g, int teamNumToControl, int width, int height){//kapag nag-error pagpalitin mo na lang yung height and width sa parameters
 		base.init (g, teamNumToControl);
 		forShow = GameObject.Find ("AIText").GetComponent<Text>();
+		biasConstant = 1;
+
+		//instantiate the weights array, convoluted neural network with an area of 9
+		//calculate for dimension of the weights array first
+		weights = new List<double[]>();
+		int curW = width - 2;
+		int curH = height - 2;
+		while (curH > 2 && curW > 2) {//kasi sakto pa kapag == 3
+			double[] temp = new double[12];//9 for actual weights, 1 for bias weight, 2 for width height
+			for (int q = 0; q < 10; q++) {
+				//read the weights from file, but for now instantiate it as random first
+				temp [q] = Random.value;
+			}
+			curH -= 2;
+			curW -= 2;
+			temp [10] = curW;
+			temp [11] = curH;
+			weights.Add (temp);
+		}
+		//instantiate the weights for the 3 categories
+		for (int q = 0; q < 3; q++) {
+			double[] temp = new double[curH * curW];
+			for (int w = 0; w < temp.Length; w++) {
+				temp[w] = Random.value;
+			}
+			weights.Add (temp);
+		}
+
+		//instantiate the Q-Tables
+		qtable = new List<double[]>();
+		//read the distrbutions from file, but for now instantiate it as random first
 	}
-	public override void think(int [,] info){//don't use the feature verctors yet
-		currentAction = 0;
+	public double getSignal (int[,] info){//uses sigmoid function to depict the final signal
+
+		return 0;
+	}
+	public override void think(int [,] info){//don't use the feature verctors yet, take note that it follows x, y convention
+		/*currentAction = 0;
 		string forText = "";
 		for (int q = 0; q < info.GetLength (1); q++) {
 			for (int w = 0; w < info.GetLength (0); w++) {
@@ -830,6 +868,49 @@ public class DQNAI : AI{
 			forText += "\n";
 		}
 		Debug.Log (forText);
-		forShow.text = forText;
+		forShow.text = forText;*/
+
+		//transform info into a double [,]
+		double[,] currentMap = new double[info.GetLength(0), info.GetLength(1)];
+		for (int q = 0; q < currentMap.GetLength (0); q++) {
+			for (int w = 0; w < currentMap.GetLength (1); w++) {
+				currentMap [q, w] = (double)info [q, w];
+			}
+		}
+		//start feeding data to the convoluted network
+		for (int q = 0; q < weights.Count - 3; q++) {
+			double [,] constructingMap = new double[(int)weights [q] [10], (int)weights [q] [11]];
+			//Debug.Log (currentMap.GetLength (0) + ", " + currentMap.GetLength (1));
+			for (int w = 0; w < weights [q] [10]; w++) {//width
+				for (int h = 0; h < weights [q] [11]; h++) {
+					//w,h represents index of top left field, the above configuration moves up down then to the right
+					int indexNgWeight = 0;
+					double currentResult = 0;
+					for (int g = h; g < h + 3; g++) {//this configuration moves from left to right then up down
+						for (int i = w; i < w + 3; i++) {
+							currentResult += currentMap [i, g] * weights [q] [indexNgWeight++];
+						}
+					}
+					currentResult += weights [q] [indexNgWeight] * biasConstant;//para sa bias constant
+					constructingMap [w, h] = currentResult;
+				}
+			}
+			currentMap = constructingMap;
+		}
+		//Debug.Log (currentMap.GetLength (0) + ", " + currentMap.GetLength (1));
+		//hopefully by this part, currentMap contains the prefinal form of the convoluted network
+		//calculate for final distributions
+		double[] finalDistributions = new double[3];
+		int distriIndex = 0;
+		for (int q = weights.Count - 3; q < weights.Count; q++) {
+			int indexNgWeightKo = 0;
+			double currentDistribution = 0;
+			for (int h = 0; h < currentMap.GetLength (1); h++) {
+				for (int w = 0; w < currentMap.GetLength (0); w++) {
+					currentDistribution += currentMap [w, h] * weights [q] [indexNgWeightKo++];
+				}
+			}
+			finalDistributions [distriIndex++] = currentDistribution;
+		}
 	}
 }
