@@ -295,15 +295,6 @@ public class GameManager : MonoBehaviour{
 }
 
 public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instantiate" function
-	public static int[,] map1 = {	{2, 0, 0, 0, 0, 0, 0, 2},
-									{0, 0, 0, 0, 0, 0, 0, 0},
-									{0, 0, 3, 4, 3, 0, 0, 0},
-									{0, 0, 4, 5, 4, 0, 0, 0},
-									{0, 0, 4, 5, 4, 0, 0, 0},
-									{0, 0, 3, 4, 3, 0, 0, 0},
-									{0, 0, 0, 0, 0, 0, 0, 0},
-									{2, 0, 0, 0, 0, 0, 0, 2}};
-
 	GameObject[,] tiles;
 	GameObject[] spawnPoints;//size is determined in init statement
 	Table[] tables;
@@ -472,12 +463,15 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 					int index = 0;
 					for (int o = w - 1; o < (w - 1 + tableHeight); o++) {
 						for (int p = q - 1; p < (q - 1 + tableWidth); p++) {
+							//check for final stray 5s
+							if(blueprint[o, p] == 5) blueprint[o, p] = -1;
 							tableTiles [index++] = tiles [p, o];
 						}
 					}
 
 					tempTables.Add(new Table (tableTiles, tableWidth - 2, tableHeight - 2));
 					//takeCare of entry points
+					//Debug.Log("I made a table");
 				}
 			}
 		}
@@ -686,6 +680,7 @@ public class Table{
 			}
 			tableTiles [q].GetComponent<Tile> ().setTable (this);
 		}
+		//Debug.Log ("I instantiated " + entryIndexes + " entry points");
 		chairs = babyChairs.ToArray ();
 		availSeats = chairs.Length;
 
@@ -701,6 +696,7 @@ public class Table{
 					break;
 				}
 			}
+			availSeats--;
 		}
 		//Debug.Log (nb[0].GetComponent<Tile>().getMapIndex().x + " " + nb[0].GetComponent<Tile>().getMapIndex().y);
 		//Debug.Log ("I am " + xS + " " + yS);
@@ -743,6 +739,7 @@ public class Table{
 		Character temp = head;
 		Character temp2 = temp;
 		Barkada tropa= head.getBarkada ();
+		int numOfNaiupo = 0;
 		for (int q = 0; q < chairs.Length && temp != null; q++) {
 			if (!chairs [q].GetComponent<Tile> ().isOccupied ()) {
 				temp.getCurrentTile ().setLaman (null);
@@ -754,6 +751,7 @@ public class Table{
 				temp = temp2;
 				chairs [q].GetComponent<Tile> ().setOccupied (true);
 				availSeats--;
+				numOfNaiupo++;
 			}
 		}
 		if (temp == null) {
@@ -764,14 +762,21 @@ public class Table{
 			//Debug.Log ("Kukuha na ako ng bago");
 		} else {
 			//meaning may natira
-			//turn every entry point into an obstacle
-			for (int q = 0; q < entryPoints.Length; q++) {
-				entryPoints [q].GetComponent<Tile> ().initialize (1, (int)entryPoints [q].GetComponent<Tile> ().getMapIndex().x, (int)entryPoints [q].GetComponent<Tile> ().getMapIndex().y);
-			}
 			//ipakontrol ulit sa player yung mga natitira
 			tropa.getTeam().addSplit();
 			tropa.setCharacters (temp);
 		}
+		if (availSeats <= 0) {
+			//turn every entry point into an obstacle
+			for (int q = 0; q < entryPoints.Length; q++) {
+				//since wala naman masyadong nagbabago in terms of graphics between an obstacled tile and normal tile, ito na lang
+				entryPoints [q].GetComponent<Tile> ().setPointVal(1);
+				//entryPoints [q].GetComponent<Tile> ().initialize (1, (int)entryPoints [q].GetComponent<Tile> ().getMapIndex().x, (int)entryPoints [q].GetComponent<Tile> ().getMapIndex().y);
+			}
+		}
+		//Debug.Log ("I have " + availSeats + " # of seats left");
+		float calculatedScore = (numOfNaiupo * (30f - GameManager.getTime())/30f) - (temp == null ? 0 : 1);
+		tropa.getTeam ().addScore (calculatedScore);
 		tropa.saveTime (GameManager.getTime ());
 		if (GameManager.checkForTermination ()) {//nagcacause ng premature termination to
 			//Debug.Log ("It is finished");
@@ -822,10 +827,10 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 public class DQNAI : AI{
 	//currentAction acts as currentStates
 	Text forShow;
-	double biasConstant;//actually di ako sure kung kailangan to e
+	double biasConstant, learningRate;//actually di ako sure kung kailangan biasConstant e
 	List<double[]> weights, qtable;
 	List<string> states;
-	List<Vector3> memoryPool;//stateIndex, decision, 1 if this decision directly resulted to a reward, 0 if not
+	List<Vector3> memoryPool;
 
 	public void init (GameManager g, int teamNumToControl, int width, int height){//kapag nag-error pagpalitin mo na lang yung height and width sa parameters
 		base.init (g, teamNumToControl);
@@ -877,16 +882,28 @@ public class DQNAI : AI{
 		//get the team's deltascore and check if deltaScore is greater than 0
 		float deltaScore = toControl.getDeltaScore();
 		if (deltaScore != 0.0) {
-			Debug.Log ("I am supposed to start the learning phase from this");
-			memoryPool [memoryPool.Count - 1] = new Vector3(memoryPool [memoryPool.Count - 1].x, memoryPool [memoryPool.Count - 1].y, 1);
 			toControl.addScore (0);//to offset the deltascore gotten by this AI
+
+			Debug.Log ("I am supposed to start the learning phase with this score: " + deltaScore);
+			double learningRate = deltaScore / 5f;//5 because based on computation, 6 is the theoretical maximum score that they can get
+
+			//change the learningRate of everyone whose learning rate is 0 in the memoryPool
+			for (int q = 0; q < memoryPool.Count; q++) {
+				if(memoryPool[q].z == 0f) memoryPool [q] = new Vector3 (memoryPool [q].x, memoryPool [q].y, learningRate);
+			}
+		} else {
+			//loop through the memories to learn from, remember to remove the memory after you are done with it
+			for (int q = 0; q < 10 || q < memoryPool.Count; q++) {//10 is the max number of batch updates per round
+				//start the learning process
+			}
 		}
-		//loop through the 
 	}
 	public double getSignal (int[,] info){//uses sigmoid function to depict the final signal
 		return 0;
 	}
 	public override void doIt (){
+
+		//since technically nasa learning phase pa lang siya, bagay pa to, pero kapag nasa production phase na, kunin mo na lang yung max distribution tapos yun ang gamitin mo
 		//calculate for distributions
 		int babyMoTo = currentAction;
 		double a = qtable[currentAction][0];
