@@ -830,7 +830,7 @@ public class DQNAI : AI{
 	double biasConstant, learningRate;//actually di ako sure kung kailangan biasConstant e
 	List<double[]> weights, qtable;
 	List<string> states;
-	List<Vector3> memoryPool;
+	List<Vector3> memoryPool;//state index, action taken, learning rate
 
 	public void init (GameManager g, int teamNumToControl, int width, int height){//kapag nag-error pagpalitin mo na lang yung height and width sa parameters
 		base.init (g, teamNumToControl);
@@ -889,14 +889,41 @@ public class DQNAI : AI{
 
 			//change the learningRate of everyone whose learning rate is 0 in the memoryPool
 			for (int q = 0; q < memoryPool.Count; q++) {
-				if(memoryPool[q].z == 0f) memoryPool [q] = new Vector3 (memoryPool [q].x, memoryPool [q].y, learningRate);
+				if(memoryPool[q].z == 0f) memoryPool [q] = new Vector3 (memoryPool [q].x, memoryPool [q].y, (float)learningRate);
 			}
 		} else {
 			//loop through the memories to learn from, remember to remove the memory after you are done with it
-			for (int q = 0; q < 10 || q < memoryPool.Count; q++) {//10 is the max number of batch updates per round
+			for (int q = 0; q < 10 && q < memoryPool.Count; q++) {//10 is the max number of batch updates per round
 				//start the learning process
+				//calculate difference rate
+				double sum = getSum(qtable[(int)memoryPool[q].x]);
+				double distri = qtable [(int)memoryPool [q].x] [(int)memoryPool [q].y];
+				double diff = distri > (sum * 0.75) ? 1 : (0.75 * sum) - distri;
+
+				//calculate for condensation rate
+				double condRate = 1/(weights.Count-3);
+
+				//adjust categorical weights
+				for (int w = 0; w < weights [weights.Count - 3 + (int)memoryPool [q].y].Length; w++) {
+					weights [weights.Count - 3 + (int)memoryPool [q].y] [w] += memoryPool [q].z * diff * condRate;
+				}
+				for (int w = 0; w < weights.Count - 3; w++) {
+					for (int e = 0; e < weights [w].Length - 2; e++) {
+						weights [w] [e] += memoryPool [q].z * diff * condRate;
+					}
+				}
 			}
 		}
+
+		//save the new set of weights
+
+	}
+	public double getSum(double[] baby){
+		double sum = baby [0];
+		for (int q = 1; q < baby.Length; q++) {
+			sum += baby [q];
+		}
+		return sum;
 	}
 	public double getSignal (int[,] info){//uses sigmoid function to depict the final signal
 		return 0;
