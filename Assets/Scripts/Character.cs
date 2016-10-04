@@ -237,7 +237,7 @@ public class Team : MonoBehaviour{
 	Character head, tail;//since it is a linked list
 	Barkada barkada;
 	int size, ID, splits, seatedChars, acuSplits;
-	float currentAcumulativeScore, curTime, maxTime, curMaxTime;
+	float currentAcumulativeScore, curTime, maxTime, curMaxTime, deltaScore;
 	Tile spawnPoint;
 	bool paused;
 	const int maxChars = 20;
@@ -284,7 +284,11 @@ public class Team : MonoBehaviour{
 	public int getAcuSeated(){
 		return maxChars - getSize ();
 	}
+	public float getDeltaScore(){
+		return deltaScore;
+	}
 	public void addScore(float score){//addScore lang kasi it doesn't make sense for the team to lose points
+		deltaScore = score;
 		currentAcumulativeScore += score;
 	}
 	public void initialize(int id, Tile ti, float mT){
@@ -298,7 +302,7 @@ public class Team : MonoBehaviour{
 		spawnPoint = ti;
 		seatedChars = 0;
 		paused = false;
-		currentAcumulativeScore = 0;
+		deltaScore = currentAcumulativeScore = 0;
 
 		for(int q = 0; q < maxChars; q++){
 			append ((GameObject)Instantiate (Resources.Load("Prefabs/PlayerPrefab", typeof(GameObject))));//characters are automatically disabled at start

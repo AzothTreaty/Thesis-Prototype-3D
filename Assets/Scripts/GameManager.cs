@@ -783,28 +783,33 @@ public class Table{
 
 public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method para makapag-isip ng maayos ang AI
 	protected GameManager gm;
-	protected int currentAction;
+	protected int currentAction, currentCorrectAction;
 	float timeCur;
-	Team toControl;
+	protected Team toControl;
 	public virtual void init(GameManager g, int teamNumToControl){
 		gm = g;
 		timeCur = 0;
 		currentAction = 0;//idle
+		currentCorrectAction = -1;//meaning wala pa siyang alam na currently correct action
 		toControl = gm.gameObject.GetComponents<Team> () [teamNumToControl];
 	}
 	public virtual void think(int[,] information){//choose a currentAction
 		currentAction = Random.Range (0, 3);
 	}
-	public virtual void learn(int[,] information, int action){
+	public virtual void learn(){
 		
 	}
 	void Update(){
 		if (!toControl.isPaused ()) {// no sense updating if the team is paused
 			if (timeCur > 1) {//temporary lang to, dapat laging kapag tapos na mag-animate na gumagalaw ang barkada saka siya ulit mag-iisip
-				think (gm.getDisplayInformation());
 				doIt ();
 				timeCur = 0;
 			} else {
+				if (timeCur + Time.deltaTime > 1) {
+					think (gm.getDisplayInformation ());
+				} else {
+					learn ();
+				}
 				timeCur += Time.deltaTime;
 			}
 		}
@@ -815,14 +820,19 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 }
 
 public class DQNAI : AI{
+	//currentAction acts as currentStates
 	Text forShow;
 	double biasConstant;//actually di ako sure kung kailangan to e
-	List<double[]> weights;
-	List<double[]> qtable;
+	List<double[]> weights, qtable;
+	List<string> states;
+	List<Vector3> memoryPool;//stateIndex, decision, 1 if this decision directly resulted to a reward, 0 if not
+
 	public void init (GameManager g, int teamNumToControl, int width, int height){//kapag nag-error pagpalitin mo na lang yung height and width sa parameters
 		base.init (g, teamNumToControl);
 		forShow = GameObject.Find ("AIText").GetComponent<Text>();
 		biasConstant = 1;
+		states = new List<string> ();
+		memoryPool = new List<Vector3> ();
 
 		//instantiate the weights array, convoluted neural network with an area of 9
 		//calculate for dimension of the weights array first
@@ -854,9 +864,50 @@ public class DQNAI : AI{
 		qtable = new List<double[]>();
 		//read the distrbutions from file, but for now instantiate it as random first
 	}
+	public string getStateRep(int [, ] info){
+		string returnVal = "";
+		for (int q = 0; q < info.GetLength (0); q++) {
+			for (int w = 0; w < info.GetLength (1); w++) {
+				returnVal += info [q, w];
+			}
+		}
+		return returnVal;
+	}
+	public override void learn (){//since score is only calculated at every end of round, learning actually starts at round 2
+		//get the team's deltascore and check if deltaScore is greater than 0
+		float deltaScore = toControl.getDeltaScore();
+		if (deltaScore != 0.0) {
+			Debug.Log ("I am supposed to start the learning phase from this");
+			memoryPool [memoryPool.Count - 1] = new Vector3(memoryPool [memoryPool.Count - 1].x, memoryPool [memoryPool.Count - 1].y, 1);
+			toControl.addScore (0);//to offset the deltascore gotten by this AI
+		}
+		//loop through the 
+	}
 	public double getSignal (int[,] info){//uses sigmoid function to depict the final signal
-
 		return 0;
+	}
+	public override void doIt (){
+		//calculate for distributions
+		int babyMoTo = currentAction;
+		double a = qtable[currentAction][0];
+		double b = qtable[currentAction][1];
+		double c = qtable[currentAction][2];
+		double sum = a + b + c;
+		a = a / sum;
+		b = b / sum;
+		c = c / sum;
+		if (a > 1 || b > 1 || c > 1)
+			Debug.Log ("What the fuck? check the distributions calculation in doIt()");
+		//revert the currentAction variable to its original usage
+		double chosen = Random.value;
+		if (chosen < a)
+			currentAction = 0;
+		else if (chosen > a && chosen < a + b)
+			currentAction = 1;
+		else
+			currentAction = 2;
+		memoryPool.Add (new Vector3 (babyMoTo, currentAction, 0));
+		base.doIt ();
 	}
 	public override void think(int [,] info){//don't use the feature verctors yet, take note that it follows x, y convention
 		/*currentAction = 0;
@@ -871,7 +922,7 @@ public class DQNAI : AI{
 		forShow.text = forText;*/
 
 		//transform info into a double [,]
-		double[,] currentMap = new double[info.GetLength(0), info.GetLength(1)];
+		double[,] currentMap = new double[info.GetLength (0), info.GetLength (1)];
 		for (int q = 0; q < currentMap.GetLength (0); q++) {
 			for (int w = 0; w < currentMap.GetLength (1); w++) {
 				currentMap [q, w] = (double)info [q, w];
@@ -879,7 +930,7 @@ public class DQNAI : AI{
 		}
 		//start feeding data to the convoluted network
 		for (int q = 0; q < weights.Count - 3; q++) {
-			double [,] constructingMap = new double[(int)weights [q] [10], (int)weights [q] [11]];
+			double[,] constructingMap = new double[(int)weights [q] [10], (int)weights [q] [11]];
 			//Debug.Log (currentMap.GetLength (0) + ", " + currentMap.GetLength (1));
 			for (int w = 0; w < weights [q] [10]; w++) {//width
 				for (int h = 0; h < weights [q] [11]; h++) {
@@ -911,6 +962,28 @@ public class DQNAI : AI{
 				}
 			}
 			finalDistributions [distriIndex++] = currentDistribution;
+		}
+
+		//store the states and their distributions
+		currentAction = states.Count;
+		string stateRep = getStateRep (info);
+		if (states.Count == 0) {
+			states.Add (stateRep);
+			qtable.Add (finalDistributions);
+		} else {
+			bool nakapasok = false;
+			for (int q = 0; q < states.Count; q++) {
+				if (states [q].Equals (stateRep)) {
+					qtable [q] = finalDistributions;
+					nakapasok = true;
+					currentAction = q;
+					break;
+				}
+			}
+			if (!nakapasok) {
+				states.Add (stateRep);
+				qtable.Add (finalDistributions);
+			}
 		}
 	}
 }
