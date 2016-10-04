@@ -287,6 +287,9 @@ public class Team : MonoBehaviour{
 	public float getDeltaScore(){
 		return deltaScore;
 	}
+	public void setDeltaScore(float f){
+		deltaScore = f;
+	}
 	public void addScore(float score){//addScore lang kasi it doesn't make sense for the team to lose points
 		deltaScore = score;
 		currentAcumulativeScore += score;

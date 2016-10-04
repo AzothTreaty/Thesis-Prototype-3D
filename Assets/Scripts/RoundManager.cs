@@ -31,7 +31,8 @@ public class RoundManager : MonoBehaviour {
 			//calculate the points for each team
 			//point system = # of characters seated * (30 seconds/timeElapsed) - # of splits due to seating arrangement
 			Debug.Log("Team " + t.getID() + " has seated " + t.getSeated() + " characters in " + t.getBarkada().getTime() + " seconds and has " + t.getSplits() + " splits");
-			float calculatedScore = (t.getSeated() * 30/t.getBarkada().getTime()) - t.getSplits();
+			//commented out yung dalawang next lines dahil nasa seatCharacters() ng Table class ang adjustan ng score
+			//float calculatedScore = (t.getSeated() * 30/t.getBarkada().getTime()) - t.getSplits();
 			//t.addScore(calculatedScore);
 			//display it in the text
 			GetComponentInChildren<Text>().text += "Team " + t.getID() + " has " + t.getScore() + " points\n";

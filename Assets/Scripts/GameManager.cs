@@ -267,6 +267,7 @@ public class GameManager : MonoBehaviour{
 						//isplit mo yung barkada dahil babalik naman yung character sa team kapag na disable siya
 						ti.getBarkada ().splitMe (ti.getBarkada ().getHead ());//putulin sila based sa head nila
 						//at iset yung time nila as 30 secs if hindi siya na split
+						ti.setDeltaScore(-5f);
 						if(ti.getBarkada().getTime() == 0f)
 							ti.getBarkada ().saveTime (getTimeKo ());
 					}
@@ -826,6 +827,7 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 
 public class DQNAI : AI{
 	//currentAction acts as currentStates
+	string weightsFilePath = "Weights.txt";
 	Text forShow;
 	double biasConstant, learningRate;//actually di ako sure kung kailangan biasConstant e
 	List<double[]> weights, qtable;
@@ -837,36 +839,57 @@ public class DQNAI : AI{
 		forShow = GameObject.Find ("AIText").GetComponent<Text>();
 		biasConstant = 1;
 		states = new List<string> ();
-		memoryPool = new List<Vector3> ();
-
-		//instantiate the weights array, convoluted neural network with an area of 9
-		//calculate for dimension of the weights array first
-		weights = new List<double[]>();
-		int curW = width - 2;
-		int curH = height - 2;
-		while (curH > 2 && curW > 2) {//kasi sakto pa kapag == 3
-			double[] temp = new double[12];//9 for actual weights, 1 for bias weight, 2 for width height
-			for (int q = 0; q < 10; q++) {
-				//read the weights from file, but for now instantiate it as random first
-				temp [q] = Random.value;
-			}
-			curH -= 2;
-			curW -= 2;
-			temp [10] = curW;
-			temp [11] = curH;
-			weights.Add (temp);
-		}
-		//instantiate the weights for the 3 categories
-		for (int q = 0; q < 3; q++) {
-			double[] temp = new double[curH * curW];
-			for (int w = 0; w < temp.Length; w++) {
-				temp[w] = Random.value;
-			}
-			weights.Add (temp);
-		}
-
-		//instantiate the Q-Tables
 		qtable = new List<double[]>();
+		memoryPool = new List<Vector3> ();
+		weights = new List<double[]> ();
+
+		string weightBabyInputs = "";
+		try{
+			weightBabyInputs = System.IO.File.ReadAllText (weightsFilePath);
+		}catch{
+
+		}
+
+		if (weightBabyInputs.Equals ("")) {//if the weights file doesn't exist
+			//instantiate the weights array, convoluted neural network with an area of 9
+			//calculate for dimension of the weights array first
+			int curW = width - 2;
+			int curH = height - 2;
+			while (curH > 2 && curW > 2) {//kasi sakto pa kapag == 3
+				double[] temp = new double[12];//9 for actual weights, 1 for bias weight, 2 for width height
+				for (int q = 0; q < 10; q++) {
+					//read the weights from file, but for now instantiate it as random first
+					temp [q] = Random.value;
+				}
+				curH -= 2;
+				curW -= 2;
+				temp [10] = curW;
+				temp [11] = curH;
+				weights.Add (temp);
+			}
+			//instantiate the weights for the 3 categories
+			for (int q = 0; q < 3; q++) {
+				double[] temp = new double[curH * curW];
+				for (int w = 0; w < temp.Length; w++) {
+					temp [w] = Random.value;
+				}
+				weights.Add (temp);
+			}
+		} else {//read it from file
+			string[] baby1 = weightBabyInputs.Split('|');
+			for (int q = 0; q < baby1.Length; q++) {
+				string[] baby2 = baby1 [q].Split ('\n');
+				for (int w = 0; w < baby2.Length - 1; w++) {
+					string[] baby3 = baby2 [w].Split (' ');
+					double[] newInputs = new double[baby3.Length];
+					for (int e = 0; e < baby3.Length; e++) {
+						newInputs [e] = double.Parse (baby3[e]);
+					}
+					weights.Add (newInputs);
+				}
+			}
+		}
+			
 		//read the distrbutions from file, but for now instantiate it as random first
 	}
 	public string getStateRep(int [, ] info){
@@ -893,7 +916,8 @@ public class DQNAI : AI{
 			}
 		} else {
 			//loop through the memories to learn from, remember to remove the memory after you are done with it
-			for (int q = 0; q < 10 && q < memoryPool.Count; q++) {//10 is the max number of batch updates per round
+			int counter = memoryPool.Count;
+			for (int q = 0; q < 10 && q < counter; q++) {//10 is the max number of batch updates per round
 				//start the learning process
 				//calculate difference rate
 				double sum = getSum(qtable[(int)memoryPool[q].x]);
@@ -913,6 +937,22 @@ public class DQNAI : AI{
 					}
 				}
 			}
+
+			//remove the memories who are used to adjust the weights
+			for (int q = 0; q < 10 && q < counter; q++) {
+				memoryPool.RemoveAt (0);
+			}
+
+			//finally record the recorded weights in the file "Weights"
+			string toBeWritten = "";
+			for (int q = 0; q < weights.Count; q++) {
+				for (int w = 0; w < weights [q].Length; w++) {
+					toBeWritten += weights [q] [w] + (w == (weights [q].Length - 1) ? "" : " ");
+				}
+				toBeWritten += "\n";
+			}
+			toBeWritten += "|";
+			System.IO.File.WriteAllText (weightsFilePath, toBeWritten);
 		}
 
 		//save the new set of weights
