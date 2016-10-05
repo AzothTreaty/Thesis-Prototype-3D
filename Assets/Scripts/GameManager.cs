@@ -828,6 +828,7 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 public class DQNAI : AI{
 	//currentAction acts as currentStates
 	string weightsFilePath = "Weights.txt";
+	string logsFilePath = "Logs.txt";
 	Text forShow;
 	double biasConstant, learningRate;//actually di ako sure kung kailangan biasConstant e
 	List<double[]> weights, qtable;
@@ -849,18 +850,23 @@ public class DQNAI : AI{
 		}catch{
 
 		}
+		string logs = System.DateTime.UtcNow.ToString() + "Starting AI\n";
 
 		if (weightBabyInputs.Equals ("")) {//if the weights file doesn't exist
 			//instantiate the weights array, convoluted neural network with an area of 9
 			//calculate for dimension of the weights array first
+			logs += weightsFilePath + " is empty, so generating random weights now\n";
 			int curW = width - 2;
 			int curH = height - 2;
 			while (curH > 2 && curW > 2) {//kasi sakto pa kapag == 3
 				double[] temp = new double[12];//9 for actual weights, 1 for bias weight, 2 for width height
+				logs += "Layer #" + weights.Count + " weights: ";
 				for (int q = 0; q < 10; q++) {
 					//read the weights from file, but for now instantiate it as random first
 					temp [q] = Random.value;
+					logs += temp [q] + " ";
 				}
+				logs += "\n";
 				curH -= 2;
 				curW -= 2;
 				temp [10] = curW;
@@ -869,28 +875,36 @@ public class DQNAI : AI{
 			}
 			//instantiate the weights for the 3 categories
 			for (int q = 0; q < 3; q++) {
+				logs += "Categorical Layer #" + q + " weights: ";
 				double[] temp = new double[curH * curW];
 				for (int w = 0; w < temp.Length; w++) {
 					temp [w] = Random.value;
+					logs += temp [w] + " ";
 				}
+				logs += "\n";
 				weights.Add (temp);
 			}
 		} else {//read it from file
+			logs += "Reading weights from " + logs + weightsFilePath + "\n";
 			string[] baby1 = weightBabyInputs.Split('|');
 			for (int q = 0; q < baby1.Length; q++) {
 				string[] baby2 = baby1 [q].Split ('\n');
 				for (int w = 0; w < baby2.Length - 1; w++) {
+					logs += "Layer " + w + "'s weights: ";
 					string[] baby3 = baby2 [w].Split (' ');
 					double[] newInputs = new double[baby3.Length];
 					for (int e = 0; e < baby3.Length; e++) {
+						logs += baby3[e] + " ";
 						newInputs [e] = double.Parse (baby3[e]);
 					}
+					logs += "\n";
 					weights.Add (newInputs);
 				}
 			}
 		}
 			
-		//read the distrbutions from file, but for now instantiate it as random first
+		//record it all in logs file
+		System.IO.File.WriteAllText(logsFilePath, logs);
 	}
 	public string getStateRep(int [, ] info){
 		string returnVal = "";
@@ -904,20 +918,24 @@ public class DQNAI : AI{
 	public override void learn (){//since score is only calculated at every end of round, learning actually starts at round 2
 		//get the team's deltascore and check if deltaScore is greater than 0
 		float deltaScore = toControl.getDeltaScore();
+		string logs = System.DateTime.UtcNow.ToString () + "Starting learning phase with deltaScore: " + deltaScore + "\n";
 		if (deltaScore != 0.0) {
 			toControl.addScore (0);//to offset the deltascore gotten by this AI
-
-			Debug.Log ("I am supposed to start the learning phase with this score: " + deltaScore);
+			//Debug.Log ("I am supposed to start the learning phase with this score: " + deltaScore);
 			double learningRate = deltaScore / 5f;//5 because based on computation, 6 is the theoretical maximum score that they can get
 
 			//change the learningRate of everyone whose learning rate is 0 in the memoryPool
 			for (int q = 0; q < memoryPool.Count; q++) {
-				if(memoryPool[q].z == 0f) memoryPool [q] = new Vector3 (memoryPool [q].x, memoryPool [q].y, (float)learningRate);
+				if (memoryPool [q].z == 0f) {
+					memoryPool [q] = new Vector3 (memoryPool [q].x, memoryPool [q].y, (float)learningRate);
+					logs += "Modified index " + q + "'s learning in memoryPool to " + memoryPool [q].z + "\n";
+				}
 			}
 		} else {
 			//loop through the memories to learn from, remember to remove the memory after you are done with it
 			int counter = memoryPool.Count;
 			for (int q = 0; q < 10 && q < counter; q++) {//10 is the max number of batch updates per round
+				logs += "Trying to learn from memory " + memoryPool[q].x + ", " + memoryPool[q].y + ", " + memoryPool[q].z + "\n";
 				//start the learning process
 				//calculate difference rate
 				double sum = getSum(qtable[(int)memoryPool[q].x]);
@@ -928,12 +946,18 @@ public class DQNAI : AI{
 				double condRate = 1/(weights.Count-3);
 
 				//adjust categorical weights
+				logs += "Changed category " + memoryPool[q].y + " weights from \n"; 
 				for (int w = 0; w < weights [weights.Count - 3 + (int)memoryPool [q].y].Length; w++) {
+					logs += weights [weights.Count - 3 + (int)memoryPool [q].y] [w] + " to ";
 					weights [weights.Count - 3 + (int)memoryPool [q].y] [w] += memoryPool [q].z * diff * condRate;
+					logs += weights [weights.Count - 3 + (int)memoryPool [q].y] [w] + "\n";
 				}
 				for (int w = 0; w < weights.Count - 3; w++) {
+					logs += "Changing layer " + w + "'s weights from \n";
 					for (int e = 0; e < weights [w].Length - 2; e++) {
+						logs += weights [w] [e] + " to ";
 						weights [w] [e] += memoryPool [q].z * diff * condRate;
+						logs += weights [w] [e] + "\n";
 					}
 				}
 			}
@@ -954,9 +978,7 @@ public class DQNAI : AI{
 			toBeWritten += "|";
 			System.IO.File.WriteAllText (weightsFilePath, toBeWritten);
 		}
-
-		//save the new set of weights
-
+		System.IO.File.WriteAllText (logsFilePath, logs);
 	}
 	public double getSum(double[] baby){
 		double sum = baby [0];
