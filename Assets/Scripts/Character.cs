@@ -14,7 +14,7 @@ public class Character : MonoBehaviour {// also acts a node in a linked list
 	float targetTime, curTime;
 	// Use this for initialization
 	void Start () {
-
+		
 	}
 
 	public int getTeamID(){// -1 for strangers
@@ -317,7 +317,6 @@ public class Team : MonoBehaviour{
 	void Update(){
 		
 	}
-
 	public void pauseMe(){
 		Character current = head;
 		while (current != null) {
@@ -354,6 +353,7 @@ public class Team : MonoBehaviour{
 		}
 		size++;
 		seatedChars--;
+		System.IO.File.AppendAllText (UtilsKo.gameLogsFilePath, "Appended a character in Team #" + getID () + " giving it a total of " + size + " characters\n");
 	}
 	public void showCharacters(){
 		Character tempoKo = head;
@@ -472,10 +472,13 @@ public class Barkada{
 	}
 	public void start(Tile tile){
 		current = head;
+		int counter = 0;
 		while (current != null) {
+			counter++;
 			current.initializeMe (tile, this);
 			current = current.getNext ();
 		}
+		System.IO.File.AppendAllText (UtilsKo.gameLogsFilePath, "Started barkada of team #" + getTeam ().getID () + " with " + counter + " members and remaining " + getTeam ().getSize () + "\n");
 	}
 	public void move(int dir, Tile newTile){//acceptor of inputs from user
 		//Debug.Log("We are " + size + " characters");

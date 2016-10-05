@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 public static class UtilsKo{
+	public static string gameLogsFilePath = "GameLogs.txt";
 	public static int mod(int a, int b){
 		return (a % b + b) % b;
 	}
@@ -28,7 +29,7 @@ public class GameManager : MonoBehaviour{
 		generalTimer = 0f;
 		paused = false;
 		once = true;
-
+	
 		//get the static version of this
 		if (gm == null)
 			gm = this.GetComponent<GameManager> ();
@@ -267,7 +268,7 @@ public class GameManager : MonoBehaviour{
 						//isplit mo yung barkada dahil babalik naman yung character sa team kapag na disable siya
 						ti.getBarkada ().splitMe (ti.getBarkada ().getHead ());//putulin sila based sa head nila
 						//at iset yung time nila as 30 secs if hindi siya na split
-						ti.setDeltaScore(-5f);
+						ti.setDeltaScore(-1f);
 						if(ti.getBarkada().getTime() == 0f)
 							ti.getBarkada ().saveTime (getTimeKo ());
 					}
@@ -775,6 +776,7 @@ public class Table{
 				//entryPoints [q].GetComponent<Tile> ().initialize (1, (int)entryPoints [q].GetComponent<Tile> ().getMapIndex().x, (int)entryPoints [q].GetComponent<Tile> ().getMapIndex().y);
 			}
 		}
+		System.IO.File.AppendAllText (UtilsKo.gameLogsFilePath, "I have seated " + numOfNaiupo + " characters from Team #" + head.getTeamID() + " giving me " + availSeats + " open seats\n");
 		//Debug.Log ("I have " + availSeats + " # of seats left");
 		float calculatedScore = (numOfNaiupo * (30f - GameManager.getTime())/30f) - (temp == null ? 0 : 1);
 		tropa.getTeam ().addScore (calculatedScore);
@@ -901,10 +903,13 @@ public class DQNAI : AI{
 					weights.Add (newInputs);
 				}
 			}
+
+			//create backup of the weights
+			System.IO.File.WriteAllText ("WeightsBackup.txt", weightBabyInputs);
 		}
 			
 		//record it all in logs file
-		System.IO.File.WriteAllText(logsFilePath, logs);
+		System.IO.File.AppendAllText(logsFilePath, logs);
 	}
 	public string getStateRep(int [, ] info){
 		string returnVal = "";
@@ -922,12 +927,12 @@ public class DQNAI : AI{
 		if (deltaScore != 0.0) {
 			toControl.addScore (0);//to offset the deltascore gotten by this AI
 			//Debug.Log ("I am supposed to start the learning phase with this score: " + deltaScore);
-			double learningRate = deltaScore / 5f;//5 because based on computation, 6 is the theoretical maximum score that they can get
+			float learningRate = deltaScore / 5.0f;//5 because based on computation, 6 is the theoretical maximum score that they can get
 
 			//change the learningRate of everyone whose learning rate is 0 in the memoryPool
 			for (int q = 0; q < memoryPool.Count; q++) {
 				if (memoryPool [q].z == 0f) {
-					memoryPool [q] = new Vector3 (memoryPool [q].x, memoryPool [q].y, (float)learningRate);
+					memoryPool [q] = new Vector3 (memoryPool [q].x, memoryPool [q].y, learningRate);
 					logs += "Modified index " + q + "'s learning in memoryPool to " + memoryPool [q].z + "\n";
 				}
 			}
@@ -935,17 +940,20 @@ public class DQNAI : AI{
 			//loop through the memories to learn from, remember to remove the memory after you are done with it
 			int counter = memoryPool.Count;
 			for (int q = 0; q < 10 && q < counter; q++) {//10 is the max number of batch updates per round
+				if(memoryPool[q].z == 0f) break;
 				logs += "Trying to learn from memory " + memoryPool[q].x + ", " + memoryPool[q].y + ", " + memoryPool[q].z + "\n";
 				//start the learning process
 				//calculate difference rate
 				double sum = getSum(qtable[(int)memoryPool[q].x]);
 				double distri = qtable [(int)memoryPool [q].x] [(int)memoryPool [q].y];
-				double diff = distri > (sum * 0.75) ? 1 : (0.75 * sum) - distri;
+				double diff = distri > (sum * 0.75) ? 1 : ((0.75 * sum) - distri);
+				logs += "sum " + sum + " distri " + distri + "\n";
 
 				//calculate for condensation rate
-				double condRate = 1/(weights.Count-3);
+				double condRate = 1.0/(weights.Count - 3.0);
 
 				//adjust categorical weights
+				logs += "Using diff " + diff + " and condRate " + condRate + "\n";
 				logs += "Changed category " + memoryPool[q].y + " weights from \n"; 
 				for (int w = 0; w < weights [weights.Count - 3 + (int)memoryPool [q].y].Length; w++) {
 					logs += weights [weights.Count - 3 + (int)memoryPool [q].y] [w] + " to ";
@@ -964,7 +972,11 @@ public class DQNAI : AI{
 
 			//remove the memories who are used to adjust the weights
 			for (int q = 0; q < 10 && q < counter; q++) {
-				memoryPool.RemoveAt (0);
+				if (memoryPool [0].z == 0f)
+					break;
+				else {
+					memoryPool.RemoveAt (0);
+				}
 			}
 
 			//finally record the recorded weights in the file "Weights"
@@ -978,7 +990,7 @@ public class DQNAI : AI{
 			toBeWritten += "|";
 			System.IO.File.WriteAllText (weightsFilePath, toBeWritten);
 		}
-		System.IO.File.WriteAllText (logsFilePath, logs);
+		System.IO.File.AppendAllText (logsFilePath, logs);
 	}
 	public double getSum(double[] baby){
 		double sum = baby [0];
@@ -999,9 +1011,10 @@ public class DQNAI : AI{
 		double b = qtable[currentAction][1];
 		double c = qtable[currentAction][2];
 		double sum = a + b + c;
-		a = a / sum;
-		b = b / sum;
-		c = c / sum;
+		a = (float)Mathf.Abs((float)(a / sum));
+		b = (float)Mathf.Abs((float)(b / sum));
+		c = (float)Mathf.Abs((float)(c / sum));
+
 		if (a > 1 || b > 1 || c > 1)
 			Debug.Log ("What the fuck? check the distributions calculation in doIt()");
 		//revert the currentAction variable to its original usage
@@ -1048,7 +1061,8 @@ public class DQNAI : AI{
 							currentResult += currentMap [i, g] * weights [q] [indexNgWeight++];
 						}
 					}
-					currentResult += weights [q] [indexNgWeight] * biasConstant;//para sa bias constant
+					currentResult += weights [q] [indexNgWeight++] * biasConstant;//para sa bias constant
+					currentResult = currentResult/(double)indexNgWeight;
 					constructingMap [w, h] = currentResult;
 				}
 			}

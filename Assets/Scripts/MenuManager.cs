@@ -7,7 +7,11 @@ public class MenuManager : MonoBehaviour {
 	static MenuManager mm;
 	// Use this for initialization
 	string textForGameOver;
+	float timePassed;
+	bool startCounting;
 	void Start () {
+		timePassed = 0f;
+		startCounting = false;
 		GameObject baby = GameObject.Find ("DontKillMe");
 		if (baby != null) {
 			mm = baby.GetComponent<MenuManager>();
@@ -50,7 +54,9 @@ public class MenuManager : MonoBehaviour {
 	private void loadMe(int i){
 		if (i == 0) {
 			SceneManager.LoadScene ("MainGame");
+			startCounting = false;
 		} else {
+			startCounting = true;
 			SceneManager.LoadScene ("GameOver");
 		}
 	}
@@ -62,6 +68,10 @@ public class MenuManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-	
+		if (timePassed > 20f) {
+			timePassed = 0f;
+			restartButtonListener ();
+		}
+		if(startCounting) timePassed += Time.deltaTime;
 	}
 }

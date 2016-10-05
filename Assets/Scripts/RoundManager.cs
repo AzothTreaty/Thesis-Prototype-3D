@@ -7,12 +7,14 @@ public class RoundManager : MonoBehaviour {
 	Team[] teams;
 	GameManager gm;
 	bool calculated;
+	float timePassed;
 	// Use this for initialization
 	void Start () {
 		Button babyKo = GetComponentInChildren<Button> ();
 		babyKo.onClick.AddListener(() => listenerKo());
 		calculated = false;
 		numberOfRounds = 10;
+		timePassed = 0f;
 	}
 
 	void listenerKo(){
@@ -49,6 +51,11 @@ public class RoundManager : MonoBehaviour {
 			if (!calculated) {
 				calculatePoints ();
 				calculated = true;
+			}
+			timePassed += Time.deltaTime;
+			if (timePassed > 10f) {
+				timePassed = 0f;
+				listenerKo ();
 			}
 		}
 	}
