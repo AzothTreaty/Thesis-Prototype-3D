@@ -77,6 +77,7 @@ public class GameManager : MonoBehaviour{
 		this.gameObject.AddComponent<DQNAI> ();
 		ai = GetComponent<DQNAI> ();
 		ai.init (this, 1, map.getWidth(), map.getHeight());
+		ai.setDS (GetComponent<MenuManager> ().getDifficulty ());
 	}
 
 	void readMaps(){
@@ -793,9 +794,11 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 	protected GameManager gm;
 	protected int currentAction, currentCorrectAction;
 	float timeCur;
+	bool initialized = false;
 	protected Team toControl;
 	public virtual void init(GameManager g, int teamNumToControl){
 		gm = g;
+		initialized = true;
 		timeCur = 0;
 		currentAction = 0;//idle
 		currentCorrectAction = -1;//meaning wala pa siyang alam na currently correct action
@@ -808,7 +811,7 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 		
 	}
 	void Update(){
-		if (!toControl.isPaused ()) {// no sense updating if the team is paused
+		if (!toControl.isPaused () && initialized) {// no sense updating if the team is paused
 			if (timeCur > 1) {//temporary lang to, dapat laging kapag tapos na mag-animate na gumagalaw ang barkada saka siya ulit mag-iisip
 				doIt ();
 				timeCur = 0;
@@ -832,10 +835,16 @@ public class DQNAI : AI{
 	string weightsFilePath = "Weights.txt";
 	string logsFilePath = "Logs.txt";
 	Text forShow;
+	int dS;//difficulty Setting
 	double biasConstant, learningRate;//actually di ako sure kung kailangan biasConstant e
-	List<double[]> weights, qtable;
+	List<double[]> qtable;
+	List<List<double[]>> weights;
 	List<string> states;
 	List<Vector3> memoryPool;//state index, action taken, learning rate
+
+	public void setDS(int y){
+		dS = y;
+	}
 
 	public void init (GameManager g, int teamNumToControl, int width, int height){//kapag nag-error pagpalitin mo na lang yung height and width sa parameters
 		base.init (g, teamNumToControl);
@@ -844,7 +853,7 @@ public class DQNAI : AI{
 		states = new List<string> ();
 		qtable = new List<double[]>();
 		memoryPool = new List<Vector3> ();
-		weights = new List<double[]> ();
+		weights = new List<List<double[]>> ();
 
 		string weightBabyInputs = "";
 		try{
@@ -858,50 +867,59 @@ public class DQNAI : AI{
 			//instantiate the weights array, convoluted neural network with an area of 9
 			//calculate for dimension of the weights array first
 			logs += weightsFilePath + " is empty, so generating random weights now\n";
-			int curW = width - 2;
-			int curH = height - 2;
-			while (curH > 2 && curW > 2) {//kasi sakto pa kapag == 3
-				double[] temp = new double[12];//9 for actual weights, 1 for bias weight, 2 for width height
-				logs += "Layer #" + weights.Count + " weights: ";
-				for (int q = 0; q < 10; q++) {
-					//read the weights from file, but for now instantiate it as random first
-					temp [q] = Random.value;
-					logs += temp [q] + " ";
+			for (int qq = 0; qq < 3; qq++) {//to generate 3 different weights
+				int curW = width - 2;
+				int curH = height - 2;
+				List<double[]> weights2 = new List<double[]> ();
+				while (curH > 2 && curW > 2) {//kasi sakto pa kapag == 3
+					double[] temp = new double[12];//9 for actual weights, 1 for bias weight, 2 for width height
+					logs += "Layer #" + weights2.Count + " weights: ";
+					for (int q = 0; q < 10; q++) {
+						//read the weights from file, but for now instantiate it as random first
+						temp [q] = Random.value;
+						logs += temp [q] + " ";
+					}
+					logs += "\n";
+					curH -= 2;
+					curW -= 2;
+					temp [10] = curW;
+					temp [11] = curH;
+					weights2.Add (temp);
 				}
-				logs += "\n";
-				curH -= 2;
-				curW -= 2;
-				temp [10] = curW;
-				temp [11] = curH;
-				weights.Add (temp);
-			}
-			//instantiate the weights for the 3 categories
-			for (int q = 0; q < 3; q++) {
-				logs += "Categorical Layer #" + q + " weights: ";
-				double[] temp = new double[curH * curW];
-				for (int w = 0; w < temp.Length; w++) {
-					temp [w] = Random.value;
-					logs += temp [w] + " ";
+				//instantiate the weights for the 3 categories
+				for (int q = 0; q < 3; q++) {
+					logs += "Categorical Layer #" + q + " weights: ";
+					double[] temp = new double[curH * curW];
+					for (int w = 0; w < temp.Length; w++) {
+						temp [w] = Random.value;
+						logs += temp [w] + " ";
+					}
+					logs += "\n";
+					weights2.Add (temp);
 				}
-				logs += "\n";
-				weights.Add (temp);
+				weights.Add (weights2);
 			}
 		} else {//read it from file
 			logs += "Reading weights from " + logs + weightsFilePath + "\n";
 			string[] baby1 = weightBabyInputs.Split('|');
+			//logs += "Detected " + baby1.Length + " sets of weights\n";
 			for (int q = 0; q < baby1.Length; q++) {
+				List<double[]> weights2 = new List<double[]> ();
 				string[] baby2 = baby1 [q].Split ('\n');
+				//logs += "Detected " + baby2.Length + " layers of weights\n";
 				for (int w = 0; w < baby2.Length - 1; w++) {
 					logs += "Layer " + w + "'s weights: ";
 					string[] baby3 = baby2 [w].Split (' ');
 					double[] newInputs = new double[baby3.Length];
 					for (int e = 0; e < baby3.Length; e++) {
 						logs += baby3[e] + " ";
+						//System.IO.File.AppendAllText(logsFilePath, logs + "+======================");
 						newInputs [e] = double.Parse (baby3[e]);
 					}
 					logs += "\n";
-					weights.Add (newInputs);
+					weights2.Add (newInputs);
 				}
+				weights.Add (weights2);
 			}
 
 			//create backup of the weights
@@ -950,22 +968,22 @@ public class DQNAI : AI{
 				logs += "sum " + sum + " distri " + distri + "\n";
 
 				//calculate for condensation rate
-				double condRate = 1.0/(weights.Count - 3.0);
+				double condRate = 1.0/(weights[dS].Count - 3.0);
 
 				//adjust categorical weights
 				logs += "Using diff " + diff + " and condRate " + condRate + "\n";
 				logs += "Changed category " + memoryPool[q].y + " weights from \n"; 
-				for (int w = 0; w < weights [weights.Count - 3 + (int)memoryPool [q].y].Length; w++) {
-					logs += weights [weights.Count - 3 + (int)memoryPool [q].y] [w] + " to ";
-					weights [weights.Count - 3 + (int)memoryPool [q].y] [w] += memoryPool [q].z * diff * condRate;
-					logs += weights [weights.Count - 3 + (int)memoryPool [q].y] [w] + "\n";
+				for (int w = 0; w < weights[dS] [weights[dS].Count - 3 + (int)memoryPool [q].y].Length; w++) {
+					logs += weights[dS] [weights[dS].Count - 3 + (int)memoryPool [q].y] [w] + " to ";
+					weights[dS] [weights[dS].Count - 3 + (int)memoryPool [q].y] [w] += memoryPool [q].z * diff * condRate;
+					logs += weights[dS] [weights[dS].Count - 3 + (int)memoryPool [q].y] [w] + "\n";
 				}
-				for (int w = 0; w < weights.Count - 3; w++) {
+				for (int w = 0; w < weights[dS].Count - 3; w++) {
 					logs += "Changing layer " + w + "'s weights from \n";
-					for (int e = 0; e < weights [w].Length - 2; e++) {
-						logs += weights [w] [e] + " to ";
-						weights [w] [e] += memoryPool [q].z * diff * condRate;
-						logs += weights [w] [e] + "\n";
+					for (int e = 0; e < weights[dS] [w].Length - 2; e++) {
+						logs += weights[dS] [w] [e] + " to ";
+						weights[dS] [w] [e] += memoryPool [q].z * diff * condRate;
+						logs += weights[dS] [w] [e] + "\n";
 					}
 				}
 			}
@@ -981,13 +999,15 @@ public class DQNAI : AI{
 
 			//finally record the recorded weights in the file "Weights"
 			string toBeWritten = "";
-			for (int q = 0; q < weights.Count; q++) {
-				for (int w = 0; w < weights [q].Length; w++) {
-					toBeWritten += weights [q] [w] + (w == (weights [q].Length - 1) ? "" : " ");
+			for (int e = 0; e < weights.Count; e++) {
+				for (int q = 0; q < weights [e].Count; q++) {
+					for (int w = 0; w < weights [e] [q].Length; w++) {
+						toBeWritten += weights [e] [q] [w] + (w == (weights [e] [q].Length - 1) ? "" : " ");
+					}
+					toBeWritten += "\n";
 				}
-				toBeWritten += "\n";
+				toBeWritten += (e == weights.Count - 1 ? "" : "|");
 			}
-			toBeWritten += "|";
 			System.IO.File.WriteAllText (weightsFilePath, toBeWritten);
 		}
 		System.IO.File.AppendAllText (logsFilePath, logs);
@@ -1007,14 +1027,18 @@ public class DQNAI : AI{
 		//since technically nasa learning phase pa lang siya, bagay pa to, pero kapag nasa production phase na, kunin mo na lang yung max distribution tapos yun ang gamitin mo
 		//calculate for distributions
 		int babyMoTo = currentAction;
-		double a = qtable[currentAction][0];
-		double b = qtable[currentAction][1];
-		double c = qtable[currentAction][2];
-		double sum = a + b + c;
-		a = (float)Mathf.Abs((float)(a / sum));
-		b = (float)Mathf.Abs((float)(b / sum));
-		c = (float)Mathf.Abs((float)(c / sum));
+		float a = (float) qtable[currentAction][0];
+		float b = (float) qtable[currentAction][1];
+		float c = (float) qtable[currentAction][2];
+		a = Mathf.Abs (a);
+		b = Mathf.Abs (b);
+		c = Mathf.Abs (c);
+		float sum = a + b + c;
+		a = a / sum;
+		b = b / sum;
+		c = c / sum;
 
+		//Debug.Log("Sum is " + sum
 		if (a > 1 || b > 1 || c > 1)
 			Debug.Log ("What the fuck? check the distributions calculation in doIt()");
 		//revert the currentAction variable to its original usage
@@ -1026,6 +1050,7 @@ public class DQNAI : AI{
 		else
 			currentAction = 2;
 		memoryPool.Add (new Vector3 (babyMoTo, currentAction, 0));
+		Debug.Log ("I chose to move " + currentAction);
 		base.doIt ();
 	}
 	public override void think(int [,] info){//don't use the feature verctors yet, take note that it follows x, y convention
@@ -1048,20 +1073,20 @@ public class DQNAI : AI{
 			}
 		}
 		//start feeding data to the convoluted network
-		for (int q = 0; q < weights.Count - 3; q++) {
-			double[,] constructingMap = new double[(int)weights [q] [10], (int)weights [q] [11]];
+		for (int q = 0; q < weights[dS].Count - 3; q++) {
+			double[,] constructingMap = new double[(int)weights[dS] [q] [10], (int)weights[dS] [q] [11]];
 			//Debug.Log (currentMap.GetLength (0) + ", " + currentMap.GetLength (1));
-			for (int w = 0; w < weights [q] [10]; w++) {//width
-				for (int h = 0; h < weights [q] [11]; h++) {
+			for (int w = 0; w < weights[dS] [q] [10]; w++) {//width
+				for (int h = 0; h < weights[dS] [q] [11]; h++) {
 					//w,h represents index of top left field, the above configuration moves up down then to the right
 					int indexNgWeight = 0;
 					double currentResult = 0;
 					for (int g = h; g < h + 3; g++) {//this configuration moves from left to right then up down
 						for (int i = w; i < w + 3; i++) {
-							currentResult += currentMap [i, g] * weights [q] [indexNgWeight++];
+							currentResult += currentMap [i, g] * weights[dS] [q] [indexNgWeight++];
 						}
 					}
-					currentResult += weights [q] [indexNgWeight++] * biasConstant;//para sa bias constant
+					currentResult += weights[dS] [q] [indexNgWeight++] * biasConstant;//para sa bias constant
 					currentResult = currentResult/(double)indexNgWeight;
 					constructingMap [w, h] = currentResult;
 				}
@@ -1073,12 +1098,12 @@ public class DQNAI : AI{
 		//calculate for final distributions
 		double[] finalDistributions = new double[3];
 		int distriIndex = 0;
-		for (int q = weights.Count - 3; q < weights.Count; q++) {
+		for (int q = weights[dS].Count - 3; q < weights[dS].Count; q++) {
 			int indexNgWeightKo = 0;
 			double currentDistribution = 0;
 			for (int h = 0; h < currentMap.GetLength (1); h++) {
 				for (int w = 0; w < currentMap.GetLength (0); w++) {
-					currentDistribution += currentMap [w, h] * weights [q] [indexNgWeightKo++];
+					currentDistribution += currentMap [w, h] * weights[dS] [q] [indexNgWeightKo++];
 				}
 			}
 			finalDistributions [distriIndex++] = currentDistribution;
