@@ -60,7 +60,7 @@ public class MenuManager : MonoBehaviour {
 	}
 
 	public int getDifficulty(){
-		return mm.difficulty;
+		return mm == null ? 0 : mm.difficulty;
 	}
 
 	void selectedDifficulty(int diff){
