@@ -766,6 +766,7 @@ public class Table{
 		} else {
 			//meaning may natira
 			//ipakontrol ulit sa player yung mga natitira
+			tropa.getTeam().setDeltaScore(-5f);
 			tropa.getTeam().addSplit();
 			tropa.setCharacters (temp);
 		}
@@ -837,10 +838,11 @@ public class DQNAI : AI{
 	Text forShow;
 	int dS;//difficulty Setting
 	double biasConstant, learningRate;//actually di ako sure kung kailangan biasConstant e
-	List<double[]> qtable;
+	List<double> qtable;
 	List<List<double[]>> weights;
 	List<string> states;
-	List<Vector3> memoryPool;//state index, action taken, learning rate
+	List<Vector2> memoryPool;//state index, learning rate, di na kailangan ang mga outputs kasi ang gusto ko lang ay i enhance siya by giving positive rewards
+	//kung baga binibigyan ko lang siya ng pat on the back na yung magnitude ay nakadepende sa lakas ng sapak
 
 	public void setDS(int y){
 		dS = y;
@@ -850,9 +852,10 @@ public class DQNAI : AI{
 		base.init (g, teamNumToControl);
 		forShow = GameObject.Find ("AIText").GetComponent<Text>();
 		biasConstant = 1;
+		learningRate = 0.3;
 		states = new List<string> ();
-		qtable = new List<double[]>();
-		memoryPool = new List<Vector3> ();
+		qtable = new List<double>();
+		memoryPool = new List<Vector2> ();
 		weights = new List<List<double[]>> ();
 
 		string weightBabyInputs = "";
@@ -886,17 +889,16 @@ public class DQNAI : AI{
 					temp [11] = curH;
 					weights2.Add (temp);
 				}
-				//instantiate the weights for the 3 categories
-				for (int q = 0; q < 3; q++) {
-					logs += "Categorical Layer #" + q + " weights: ";
-					double[] temp = new double[curH * curW];
-					for (int w = 0; w < temp.Length; w++) {
-						temp [w] = Random.value;
-						logs += temp [w] + " ";
-					}
-					logs += "\n";
-					weights2.Add (temp);
+				//instantiate the weights for the end categories
+				logs += "Categorical Layer #" + qq + " weights: ";
+				double[] temp2 = new double[curH * curW];
+				for (int w = 0; w < temp2.Length; w++) {
+					temp2 [w] = Random.value;
+					logs += temp2 [w] + " ";
 				}
+				logs += "\n";
+				weights2.Add (temp2);
+
 				weights.Add (weights2);
 			}
 		} else {//read it from file
@@ -945,44 +947,45 @@ public class DQNAI : AI{
 		if (deltaScore != 0.0) {
 			toControl.addScore (0);//to offset the deltascore gotten by this AI
 			//Debug.Log ("I am supposed to start the learning phase with this score: " + deltaScore);
-			float learningRate = deltaScore / 5.0f;//5 because based on computation, 6 is the theoretical maximum score that they can get
+			int counterNiGio = 0;
+			for (int q = 0; q < memoryPool.Count; q++) {
+				if (memoryPool [q].y == 0f) {
+					counterNiGio++;
+				}
+			}
+			float learningRate2 = (deltaScore / 5.0f)/(float)counterNiGio;//5 because based on computation, 6 is the theoretical maximum score that they can get
 
 			//change the learningRate of everyone whose learning rate is 0 in the memoryPool
 			for (int q = 0; q < memoryPool.Count; q++) {
-				if (memoryPool [q].z == 0f) {
-					memoryPool [q] = new Vector3 (memoryPool [q].x, memoryPool [q].y, learningRate);
-					logs += "Modified index " + q + "'s learning in memoryPool to " + memoryPool [q].z + "\n";
+				if (memoryPool [q].y == 0f) {
+					memoryPool [q] = new Vector4 (memoryPool [q].x, learningRate2);
+					logs += "Modified index " + q + "'s learning in memoryPool to " + memoryPool [q].y + "\n";
 				}
 			}
 		} else {
 			//loop through the memories to learn from, remember to remove the memory after you are done with it
 			int counter = memoryPool.Count;
 			for (int q = 0; q < 10 && q < counter; q++) {//10 is the max number of batch updates per round
-				if(memoryPool[q].z == 0f) break;
-				logs += "Trying to learn from memory " + memoryPool[q].x + ", " + memoryPool[q].y + ", " + memoryPool[q].z + "\n";
+				if(memoryPool[q].y == 0f) break;
+				logs += "Trying to learn from memory " + memoryPool[q].x + ", " + memoryPool[q].y + "\n";
 				//start the learning process
 				//calculate difference rate
-				double sum = getSum(qtable[(int)memoryPool[q].x]);
-				double distri = qtable [(int)memoryPool [q].x] [(int)memoryPool [q].y];
-				double diff = distri > (sum * 0.75) ? 1 : ((0.75 * sum) - distri);
-				logs += "sum " + sum + " distri " + distri + "\n";
 
-				//calculate for condensation rate
-				double condRate = 1.0/(weights[dS].Count - 3.0);
+				//calculate for condensation rate between layers
+				double condRate = 1.0/(weights[dS].Count - 1);
 
 				//adjust categorical weights
-				logs += "Using diff " + diff + " and condRate " + condRate + "\n";
-				logs += "Changed category " + memoryPool[q].y + " weights from \n"; 
-				for (int w = 0; w < weights[dS] [weights[dS].Count - 3 + (int)memoryPool [q].y].Length; w++) {
-					logs += weights[dS] [weights[dS].Count - 3 + (int)memoryPool [q].y] [w] + " to ";
-					weights[dS] [weights[dS].Count - 3 + (int)memoryPool [q].y] [w] += memoryPool [q].z * diff * condRate;
-					logs += weights[dS] [weights[dS].Count - 3 + (int)memoryPool [q].y] [w] + "\n";
+				for (int w = 0; w < weights [dS] [weights [dS].Count - 1].Length; w++) {
+					logs += weights[dS] [weights[dS].Count - 1] [w] + " to ";
+					weights[dS] [weights[dS].Count - 1] [w] += memoryPool [q].y * learningRate * condRate;
+					logs += weights[dS] [weights[dS].Count - 1] [w] + "\n";
 				}
-				for (int w = 0; w < weights[dS].Count - 3; w++) {
+
+				for (int w = 0; w < weights[dS].Count - 1; w++) {
 					logs += "Changing layer " + w + "'s weights from \n";
 					for (int e = 0; e < weights[dS] [w].Length - 2; e++) {
 						logs += weights[dS] [w] [e] + " to ";
-						weights[dS] [w] [e] += memoryPool [q].z * diff * condRate;
+						weights[dS] [w] [e] += memoryPool [q].y * learningRate * condRate;
 						logs += weights[dS] [w] [e] + "\n";
 					}
 				}
@@ -990,7 +993,7 @@ public class DQNAI : AI{
 
 			//remove the memories who are used to adjust the weights
 			for (int q = 0; q < 10 && q < counter; q++) {
-				if (memoryPool [0].z == 0f)
+				if (memoryPool [0].y == 0f)
 					break;
 				else {
 					memoryPool.RemoveAt (0);
@@ -1027,35 +1030,30 @@ public class DQNAI : AI{
 		//since technically nasa learning phase pa lang siya, bagay pa to, pero kapag nasa production phase na, kunin mo na lang yung max distribution tapos yun ang gamitin mo
 		//calculate for distributions
 		int babyMoTo = currentAction;
-		float a = (float) qtable[currentAction][0];
-		float b = (float) qtable[currentAction][1];
-		float c = (float) qtable[currentAction][2];
-		a = Mathf.Abs (a);
-		b = Mathf.Abs (b);
-		c = Mathf.Abs (c);
-		float sum = a + b + c;
-		a = a / sum;
-		b = b / sum;
-		c = c / sum;
+
+		//logistic function
+		float b = (float) qtable[currentAction];
+		float a = (float)(1.0 / (1.0 + Mathf.Exp(-1.0f * b)));
+
 
 		//Debug.Log("Sum is " + sum
-		if (a > 1 || b > 1 || c > 1)
+		if (a > 1)
 			Debug.Log ("What the fuck? check the distributions calculation in doIt()");
 		//revert the currentAction variable to its original usage
-		double chosen = Random.value;
-		if (chosen < a)
+
+		if (a <= 1.0/3.0)
 			currentAction = 0;
-		else if (chosen > a && chosen < a + b)
+		else if (1.0/3.0 < a && a < 2.0/3.0)
 			currentAction = 1;
 		else
 			currentAction = 2;
-		memoryPool.Add (new Vector3 (babyMoTo, currentAction, 0));
-		Debug.Log ("I chose to move " + currentAction);
+		memoryPool.Add (new Vector2 (babyMoTo, 0));
+		//Debug.Log ("I chose to move " + currentAction);
 		base.doIt ();
 	}
 	public override void think(int [,] info){//don't use the feature verctors yet, take note that it follows x, y convention
-		/*currentAction = 0;
-		string forText = "";
+		//currentAction = 0;
+		/*string forText = "";
 		for (int q = 0; q < info.GetLength (1); q++) {
 			for (int w = 0; w < info.GetLength (0); w++) {
 				forText += info [w, q] + " ";
@@ -1069,11 +1067,13 @@ public class DQNAI : AI{
 		double[,] currentMap = new double[info.GetLength (0), info.GetLength (1)];
 		for (int q = 0; q < currentMap.GetLength (0); q++) {
 			for (int w = 0; w < currentMap.GetLength (1); w++) {
+				if (info [q, w] == -2)
+					currentMap [q, w] = 10;
 				currentMap [q, w] = (double)info [q, w];
 			}
 		}
 		//start feeding data to the convoluted network
-		for (int q = 0; q < weights[dS].Count - 3; q++) {
+		for (int q = 0; q < weights[dS].Count - 1; q++) {
 			double[,] constructingMap = new double[(int)weights[dS] [q] [10], (int)weights[dS] [q] [11]];
 			//Debug.Log (currentMap.GetLength (0) + ", " + currentMap.GetLength (1));
 			for (int w = 0; w < weights[dS] [q] [10]; w++) {//width
@@ -1096,39 +1096,31 @@ public class DQNAI : AI{
 		//Debug.Log (currentMap.GetLength (0) + ", " + currentMap.GetLength (1));
 		//hopefully by this part, currentMap contains the prefinal form of the convoluted network
 		//calculate for final distributions
-		double[] finalDistributions = new double[3];
-		int distriIndex = 0;
-		for (int q = weights[dS].Count - 3; q < weights[dS].Count; q++) {
-			int indexNgWeightKo = 0;
-			double currentDistribution = 0;
-			for (int h = 0; h < currentMap.GetLength (1); h++) {
-				for (int w = 0; w < currentMap.GetLength (0); w++) {
-					currentDistribution += currentMap [w, h] * weights[dS] [q] [indexNgWeightKo++];
-				}
+		int indexNgWeightKo = 0;
+		double currentDistribution = 0;
+		//Debug.Log (currentMap.GetLength (0) + ", " + currentMap.GetLength (1));
+		for (int h = 0; h < currentMap.GetLength (1); h++) {
+			for (int w = 0; w < currentMap.GetLength (0); w++) {
+				currentDistribution += currentMap [w, h] * weights[dS] [weights[dS].Count - 1] [indexNgWeightKo++];
 			}
-			finalDistributions [distriIndex++] = currentDistribution;
 		}
+
 
 		//store the states and their distributions
 		currentAction = states.Count;
 		string stateRep = getStateRep (info);
-		if (states.Count == 0) {
+		bool nakapasok = false;
+		for (int q = 0; q < states.Count; q++) {
+			if (states [q].Equals (stateRep)) {
+				qtable [q] = currentDistribution;
+				nakapasok = true;
+				currentAction = q;
+				break;
+			}
+		}
+		if (!nakapasok) {
 			states.Add (stateRep);
-			qtable.Add (finalDistributions);
-		} else {
-			bool nakapasok = false;
-			for (int q = 0; q < states.Count; q++) {
-				if (states [q].Equals (stateRep)) {
-					qtable [q] = finalDistributions;
-					nakapasok = true;
-					currentAction = q;
-					break;
-				}
-			}
-			if (!nakapasok) {
-				states.Add (stateRep);
-				qtable.Add (finalDistributions);
-			}
+			qtable.Add (currentDistribution);
 		}
 	}
 }
