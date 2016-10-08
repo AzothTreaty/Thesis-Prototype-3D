@@ -14,6 +14,8 @@ public static class UtilsKo{
 //actual game termination is seen in checkForTermin() and in roundmanager's update(), gameOver() is called by boths
 public class GameManager : MonoBehaviour{
 	public static List<int[,]> maps;
+	List<StrangerAI> strangersThatMove;
+	static List<StrangerAI> strangersPool;
 	static Map map;
 	Barkada tBC;
 	HUDManager dm;
@@ -29,6 +31,8 @@ public class GameManager : MonoBehaviour{
 		generalTimer = 0f;
 		paused = false;
 		once = true;
+		strangersPool = new List<StrangerAI> ();
+		strangersThatMove = new List<StrangerAI> ();
 	
 		//get the static version of this
 		if (gm == null)
@@ -245,8 +249,18 @@ public class GameManager : MonoBehaviour{
 			//move all barkadas
 			foreach (Team i in GetComponents<Team>()) if(!(i.isPaused()) && i.timeToMove(Time.deltaTime)) move (0, i.getBarkada());
 		}
-		if (UtilsKo.mod((int)generalTimer, 20) == 19) {//meaning every 10 seconds gagalaw ang isang stranger
-			//makeAStranger();
+
+		//stranger behaviors
+		if (UtilsKo.mod((int)generalTimer, 20) == 19) {//meaning every 10 seconds gagalaw ang mga strangers
+			foreach (StrangerAI sa in strangersThatMove) {
+				sa.think ();
+				sa.doIt ();
+			}
+		}
+		if (UtilsKo.mod((int)generalTimer, 60) == 59) {//meaning every 60 seconds magsisimulang gumalaw ang isang stranger
+			int tabIndex = Random.Range(0, strangersPool.Count);
+			strangersPool [tabIndex].startMoving (map.getSpawnPoint());
+			strangersThatMove.Add (strangersPool[tabIndex]);
 			//dito dapat code for stranger exiting
 		}
 
@@ -290,16 +304,20 @@ public class GameManager : MonoBehaviour{
 		//update the map
 		minimap.GetComponent<MiniMapManager>().updateMe(map.getEnvironmentDisplay());
 	}
-	public static void makeAStranger(Tile tile1){
+	public static void makeAStranger(Tile tile1, Table tableKo){
 		GameObject temp = (GameObject)Instantiate (Resources.Load ("Prefabs/PlayerPrefab", typeof(GameObject)));
-		temp.GetComponent<Character> ().setUpStranger (gm);//dapat mauna ang setUpStranger dahil kinacall nito to ang startProperly() ng character na ginamit dito
+		strangersPool.Add(temp.GetComponent<Character> ().setUpStranger (gm, tableKo));//dapat mauna ang setUpStranger dahil kinacall nito to ang startProperly() ng character na ginamit dito
 		temp.GetComponent<Character> ().initializeMe (tile1, null);
+	}
+	public int getDirections(Tile s, Tile d){
+		return map.fromDirectionalToReal (s, map.getProjectedNextTile((int)((s.getMapIndex().y * map.getWidth()) + s.getMapIndex().x), (int)((d.getMapIndex().y * map.getWidth()) + d.getMapIndex().x)));
 	}
 }
 
 public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instantiate" function
-	GameObject[,] tiles;
+	GameObject[,] tiles;//x, y format
 	GameObject[] spawnPoints;//size is determined in init statement
+	int[,] dM;
 	Table[] tables;
 	int xQuant, yQuant, numTables;
 	public int getNumChairs(){
@@ -308,6 +326,25 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 			returnVal += t.getNumChairs();
 		}
 		return returnVal;
+	}
+	public Table[] getTables(){
+		return tables;
+	}
+	public Tile getProjectedNextTile(int source, int destination){
+		int tileIndex = dM [source, destination];
+		return tiles [tileIndex / tiles.GetLength (1), tileIndex % tiles.GetLength (1)].GetComponent<Tile>();
+	}
+	public int fromDirectionalToReal(Tile source, Tile desti){
+		Vector3 sourceKo = source.getMapIndex ();
+		Vector3 destiKo = desti.getMapIndex ();
+		if (sourceKo.x > destiKo.x && sourceKo.y == destiKo.y) {//to the left
+			return 2;
+		} else if (sourceKo.x < destiKo.x && sourceKo.y == destiKo.y) {
+			return 1;
+		} else {
+			return 0;
+		}
+
 	}
 	public Tile getNewTile(int dir, Tile current){//1 is right, 2 is forward, 3 is left
 		Vector3 currIndex = current.getMapIndex();
@@ -375,6 +412,138 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 			}
 		}
 		return returnVal;
+	}
+
+	public void initializeDirectionalMap(){
+		//make mapa
+		int[,] mapa = new int[yQuant, xQuant];
+		for(int q = 0; q < yQuant; q++){
+			for(int w = 0; w < xQuant; w++){
+				mapa [q, w] = 0;
+			}
+		}
+
+		int numTiles = mapa.GetLength(0) * mapa.GetLength(1);
+		Vector2[,] directionalMap = new Vector2[numTiles,numTiles];//2D array ng vector2 dapat to in c#
+		//instantiate the directionalMap
+		for(int q = 0; q < numTiles; q++){
+			for(int w = 0; w < numTiles; w++){
+				directionalMap [q, w] = new Vector2 (-2, -2);
+			}
+		}
+
+
+		//build directionalMap
+		//firstPass, build the initial directionalMap
+		for(int q = 0; q < mapa.GetLength(0); q++){
+			for(int w = 0; w < mapa.GetLength(1); w++){
+				//q, w is the y, x coordinate of the source tile
+				int dSI = (q * mapa.GetLength(1)) + w;
+
+				//e, r is the y, x coordinate of the destination tile
+				for(int e = 0; e < mapa.GetLength(0); e++){
+					for(int r = 0; r < mapa.GetLength(1); r++){
+						int dDI = (e * mapa.GetLength(1)) + r;
+						if(dSI == dDI || mapa[e,r] == -1 || mapa[q,w] == -1){//checks kung pwede mapuntahan yung tile
+							directionalMap [dSI, dDI] = new Vector2 (-1, -1);
+						}
+						else if(dSI + mapa.GetLength(1) == dDI || dSI - mapa.GetLength(1) == dDI || (dSI % mapa.GetLength(1) != 0 && dSI - 1 == dDI) || (dSI % mapa.GetLength(1) != mapa.GetLength(1) - 1 && dSI + 1 == dDI)){//nasa baba, nasa taas, nasa kaliwa, nasa kanan
+							directionalMap [dSI, dDI] = new Vector2 (dDI, 1);
+						}
+					}
+				}
+			}
+		}
+
+		//fill all the other blanks
+		for(int q = 0; q < mapa.GetLength(0); q++){
+			for(int w = 0; w < mapa.GetLength(1); w++){
+				//q, w is the y, x coordinate of the source tile
+				int dSI = (q * mapa.GetLength(1)) + w;
+
+				//e, r is the y, x coordinate of the destination tile
+				for(int e = 0; e < mapa.GetLength(0); e++){
+					for(int r = 0; r < mapa.GetLength(1); r++){
+						int dDI = (e * mapa.GetLength(1)) + r;
+						if(directionalMap[dSI,dDI].y == -2){
+							//iplug ang mga nasa row dDI whose [1] == 1
+							//technically dapat queue ginagamit dito e
+							//System.out.println("Looking for path from " + dSI + " to " + dDI);
+							Queue<int[]> queue = new Queue<int[]>();
+							int tempDSI = dSI;
+							int[] currentArr = new int[1];
+							currentArr[0] = 0;
+							while(true){
+								//push the adjacents
+								for(int y = 0; y < numTiles; y++){
+									if(directionalMap[tempDSI, y].y == 1){
+										//first check if y is already inside the queue
+										if(y == dSI) continue;
+										bool nasaLoobNa = false;
+										foreach(int[] arrayKo in queue){
+											bool kailangangLumabas = false;
+											for(int u = 0;u < arrayKo.Length - 1; u++){
+												if(arrayKo[u] == y){
+													nasaLoobNa = true;
+													kailangangLumabas = true;
+													break;
+												}
+											}
+											if (kailangangLumabas)
+												break;
+										}
+										if(nasaLoobNa) continue;
+
+										//proceed to add the newarray
+										int[] newArr = new int[currentArr.Length + 1];
+										newArr[currentArr.Length] = currentArr[currentArr.Length - 1] + 1;//put the new weight
+										newArr[currentArr.Length - 1] = y;//put the additional tile
+										for(int t = 0; t < (currentArr.Length - 1); t++){//put the original ones
+											newArr[t] = currentArr[t];
+										}
+										/*
+										System.out.println("Using y " + y);
+										System.out.print("Used array ");
+										for(int u = 0; u < currentArr.length; u++){
+											System.out.print(currentArr[u] + " ");
+										}
+										System.out.println(" ");
+										System.out.print("Adding array ");
+										for(int u = 0; u < newArr.length; u++){
+											System.out.print(newArr[u] + " ");
+										}
+										System.out.println(" ");*/
+										queue.Enqueue(newArr);
+									}
+								}
+
+								//pop the first in the array
+								int[] toProc = queue.Dequeue();
+								//check if its the destination
+								if(toProc[toProc.Length - 2] == dDI){
+									//set the [0] and [1]
+									directionalMap[dSI,dDI] = new Vector2(toProc[0], toProc[toProc.Length - 1]);
+									break;
+								}
+								else{
+									tempDSI = toProc[toProc.Length - 2];
+									currentArr = toProc;
+								}
+							}
+						}
+						//else{}, wala na tong else e
+					}
+				}
+			}
+		}
+
+		//transform the directional map
+		dM = new int[numTiles, numTiles];
+		for(int q = 0;q < numTiles; q++){
+			for(int w = 0; w < numTiles; w++){
+				dM[q, w] = (int)directionalMap[q, w].x;
+			}
+		}
 	}
 
 	//sobrang fucked up pa ng pointVal system
@@ -479,6 +648,7 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 			}
 		}
 		tables = tempTables.ToArray ();
+		initializeDirectionalMap ();
 	}
 
 	public void initialize(int xxQ, int yyQ, int tN){
@@ -641,7 +811,9 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 				tiles [w, q].GetComponent<Tile> ().setName ();
 			}
 		}
+		initializeDirectionalMap();
 	}
+
 	public Tile getSpawnPoint(){
 		int baby = Random.Range (0, spawnPoints.Length);
 		while (true) {
@@ -667,6 +839,10 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 public class Table{
 	int availSeats;
 	GameObject[] tableTiles, entryPoints, chairs;
+	public Tile getAnEntryPoint(){
+		int baby = Random.Range (0, 4);
+		return entryPoints [baby].GetComponent<Tile> ();
+	}
 	public Table(GameObject[] nb, int xS, int yS){//ayusin ang pointVal flags ng tiles
 		tableTiles = nb;
 		entryPoints = new GameObject[4];
@@ -694,7 +870,7 @@ public class Table{
 			while (true) {
 				int randomIndex = Random.Range (0, chairs.Length);
 				if (!chairs [randomIndex].GetComponent<Tile> ().isOccupied ()) {
-					GameManager.makeAStranger (chairs [randomIndex].GetComponent<Tile> ());
+					GameManager.makeAStranger (chairs [randomIndex].GetComponent<Tile> (), this);
 					chairs [randomIndex].GetComponent<Tile> ().setOccupied (true);
 					break;
 				}
@@ -726,7 +902,7 @@ public class Table{
 			while (true) {
 				int randomIndex = Random.Range (0, chairs.Length);
 				if (!chairs [randomIndex].GetComponent<Tile> ().isOccupied ()) {
-					GameManager.makeAStranger (chairs [randomIndex].GetComponent<Tile> ());
+					GameManager.makeAStranger (chairs [randomIndex].GetComponent<Tile> (), this);
 					chairs [randomIndex].GetComponent<Tile> ().setOccupied (true);
 					break;
 				}

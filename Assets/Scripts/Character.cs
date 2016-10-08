@@ -215,11 +215,12 @@ public class Character : MonoBehaviour {// also acts a node in a linked list
 			}
 		}
 	}*/
-	public void setUpStranger(GameManager gm){
+	public StrangerAI setUpStranger(GameManager gm, Table t){
 		startProperly ();//dapat dito dahil pinapalitan ng constructor ng strangerai ang name ng character
-		sAI = new StrangerAI (gm, this);
+		sAI = new StrangerAI (gm, this, t);
 		targetTime = 2f;
 		curTime = 0f;
+		return sAI;
 	}
 	public void startAI(){
 		aiEnabled = true;
@@ -522,15 +523,24 @@ public class StrangerAI{
 	Character toMove;
 	int currentAction;
 	GameManager gm;
-	public StrangerAI(GameManager g, Character c){
+	Table tableKo;
+	Tile currentPosition, destination;
+	public StrangerAI(GameManager g, Character c, Table t){
 		toMove = c;
 		gm = g;
+		tableKo = t;
 		currentAction = 0;
 		toMove.name = "MainGuy69";
 		//Debug.Log ("Spawned at " + c.getCurrentTile ().getMapIndex ().x + ", " + c.getCurrentTile ().getMapIndex ().y);
 	}
+	public void startMoving(Tile d){
+		currentPosition = tableKo.getAnEntryPoint ();
+		toMove.setTile (currentPosition);
+		destination = d;
+	}
 	public void think(){
-		currentAction = Random.Range (0, 4);
+		//get current position then feed it to the map to get next destination
+		currentAction = gm.getDirections (currentPosition, destination);//Random.Range (0, 4);
 	}
 	public void doIt(){
 		//Debug.Log (toMove == null ? "toMove" : gm == null ? "gm" : "wtf?");
