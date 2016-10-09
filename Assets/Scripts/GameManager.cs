@@ -5,6 +5,9 @@ using System.Collections.Generic;
 
 public static class UtilsKo{
 	public static string gameLogsFilePath = "GameLogs.txt";
+	public static string weightsFilePath = "Weights.txt";
+	public static string logsFilePath = "Logs.txt";
+	public static string directionalMapFilePath = "DirectionalMap.txt";
 	public static int mod(int a, int b){
 		return (a % b + b) % b;
 	}
@@ -23,11 +26,17 @@ public class GameManager : MonoBehaviour{
 	bool paused, once;
 	DQNAI ai;
 	static GameManager gm;
-	float spawnTime, generalTimer;//generalTimer should not be reset, just modulo it if you want to know if 30 seconds have passed
+	float spawnTime, strangerMoveTime, generalTimer;//generalTimer should not be reset, just modulo it if you want to know if 30 seconds have passed
 	int numTeams;
 	GameObject roundMaster, minimap;
+	public void removeStranger(StrangerAI sai){
+		strangersPool.Remove (sai);
+		strangersThatMove.Remove (sai);
+		sai.disable ();
+	}
 	void Start(){
 		spawnTime = 0f;
+		strangerMoveTime = 0f;
 		generalTimer = 0f;
 		paused = false;
 		once = true;
@@ -251,18 +260,28 @@ public class GameManager : MonoBehaviour{
 		}
 
 		//stranger behaviors
-		if (UtilsKo.mod((int)generalTimer, 20) == 19) {//meaning every 10 seconds gagalaw ang mga strangers
-			foreach (StrangerAI sa in strangersThatMove) {
+		if (UtilsKo.mod ((int)strangerMoveTime, 2) == 1) {//meaning every 10 seconds gagalaw ang mga strangers
+			if (strangersThatMove.Count > 0) {
+				strangersThatMove [0].think ();
+				strangersThatMove [0].doIt ();
+			}
+			/*foreach (StrangerAI sa in strangersThatMove) {
 				sa.think ();
 				sa.doIt ();
+			}*/
+			strangerMoveTime = 0f;
+		} else
+			strangerMoveTime += Time.deltaTime;
+		if (UtilsKo.mod ((int)spawnTime, 5) == 4) {//meaning every 60 seconds magsisimulang gumalaw ang isang stranger
+			if (strangersThatMove.Count == 0 && strangersPool.Count > 0) {
+				int tabIndex = Random.Range (0, strangersPool.Count);
+				strangersPool [tabIndex].startMoving (map.getSpawnPoint ());
+				strangersThatMove.Add (strangersPool [tabIndex]);
 			}
-		}
-		if (UtilsKo.mod((int)generalTimer, 60) == 59) {//meaning every 60 seconds magsisimulang gumalaw ang isang stranger
-			int tabIndex = Random.Range(0, strangersPool.Count);
-			strangersPool [tabIndex].startMoving (map.getSpawnPoint());
-			strangersThatMove.Add (strangersPool[tabIndex]);
 			//dito dapat code for stranger exiting
-		}
+			spawnTime = 0f;
+		} else
+			spawnTime += Time.deltaTime;
 
 		//update the HUDPanel
 		generalTimer += Time.deltaTime;
@@ -310,7 +329,10 @@ public class GameManager : MonoBehaviour{
 		temp.GetComponent<Character> ().initializeMe (tile1, null);
 	}
 	public int getDirections(Tile s, Tile d){
-		return map.fromDirectionalToReal (s, map.getProjectedNextTile((int)((s.getMapIndex().y * map.getWidth()) + s.getMapIndex().x), (int)((d.getMapIndex().y * map.getWidth()) + d.getMapIndex().x)));
+		//Debug.Log ("Pumasok sa game manager ang source tile at " + s.getMapIndex ().x + ", " + s.getMapIndex ().y + " at " + d.getMapIndex ().x + ", " + d.getMapIndex ().y + " with width of " + map.getWidth());
+		int returnVal = map.fromDirectionalToReal (s, map.getProjectedNextTile((int)((s.getMapIndex().y * map.getWidth()) + s.getMapIndex().x), (int)((d.getMapIndex().y * map.getWidth()) + d.getMapIndex().x)));
+		//Debug.Log ("Please turn " + returnVal);
+		return returnVal;
 	}
 }
 
@@ -331,20 +353,24 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 		return tables;
 	}
 	public Tile getProjectedNextTile(int source, int destination){
+		//Debug.Log ("trying to find way from " + source + " to " + destination);
 		int tileIndex = dM [source, destination];
-		return tiles [tileIndex / tiles.GetLength (1), tileIndex % tiles.GetLength (1)].GetComponent<Tile>();
+		//Debug.Log ("go to tileIndex " + tileIndex);
+		return tiles [tileIndex % xQuant, (int)(tileIndex / xQuant)].GetComponent<Tile>();
 	}
 	public int fromDirectionalToReal(Tile source, Tile desti){
 		Vector3 sourceKo = source.getMapIndex ();
 		Vector3 destiKo = desti.getMapIndex ();
 		if (sourceKo.x > destiKo.x && sourceKo.y == destiKo.y) {//to the left
-			return 2;
+			return 3;
 		} else if (sourceKo.x < destiKo.x && sourceKo.y == destiKo.y) {
 			return 1;
-		} else {
+		} else if (sourceKo.y > destiKo.y) {
+			return 2;
+		}else {
+			//Debug.Log ("s = " + sourceKo.x + ", " + sourceKo.y + " d = " + destiKo.x + ", " + destiKo.y);
 			return 0;
 		}
-
 	}
 	public Tile getNewTile(int dir, Tile current){//1 is right, 2 is forward, 3 is left
 		Vector3 currIndex = current.getMapIndex();
@@ -415,93 +441,97 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 	}
 
 	public void initializeDirectionalMap(){
-		//make mapa
-		int[,] mapa = new int[yQuant, xQuant];
-		for(int q = 0; q < yQuant; q++){
-			for(int w = 0; w < xQuant; w++){
-				mapa [q, w] = 0;
+		string inputInfo = System.IO.File.ReadAllText (UtilsKo.directionalMapFilePath);
+		if (inputInfo.Equals ("")) {
+			//make mapa
+			int[,] mapa = new int[yQuant, xQuant];
+			for (int q = 0; q < yQuant; q++) {
+				for (int w = 0; w < xQuant; w++) {
+					int pV = tiles [w, q].GetComponent<Tile> ().getPointVal ();
+					mapa [q, w] = (pV == 4 || pV == 5) ? -1 : 0;
+				}
 			}
-		}
 
-		int numTiles = mapa.GetLength(0) * mapa.GetLength(1);
-		Vector2[,] directionalMap = new Vector2[numTiles,numTiles];//2D array ng vector2 dapat to in c#
-		//instantiate the directionalMap
-		for(int q = 0; q < numTiles; q++){
-			for(int w = 0; w < numTiles; w++){
-				directionalMap [q, w] = new Vector2 (-2, -2);
+			int numTiles = mapa.GetLength (0) * mapa.GetLength (1);
+			Vector2[,] directionalMap = new Vector2[numTiles, numTiles];//2D array ng vector2 dapat to in c#
+			//instantiate the directionalMap
+			for (int q = 0; q < numTiles; q++) {
+				for (int w = 0; w < numTiles; w++) {
+					directionalMap [q, w] = new Vector2 (-2, -2);
+				}
 			}
-		}
 
 
-		//build directionalMap
-		//firstPass, build the initial directionalMap
-		for(int q = 0; q < mapa.GetLength(0); q++){
-			for(int w = 0; w < mapa.GetLength(1); w++){
-				//q, w is the y, x coordinate of the source tile
-				int dSI = (q * mapa.GetLength(1)) + w;
+			//build directionalMap
+			//firstPass, build the initial directionalMap
+			for (int q = 0; q < mapa.GetLength (0); q++) {
+				for (int w = 0; w < mapa.GetLength (1); w++) {
+					//q, w is the y, x coordinate of the source tile
+					int dSI = (q * mapa.GetLength (1)) + w;
 
-				//e, r is the y, x coordinate of the destination tile
-				for(int e = 0; e < mapa.GetLength(0); e++){
-					for(int r = 0; r < mapa.GetLength(1); r++){
-						int dDI = (e * mapa.GetLength(1)) + r;
-						if(dSI == dDI || mapa[e,r] == -1 || mapa[q,w] == -1){//checks kung pwede mapuntahan yung tile
-							directionalMap [dSI, dDI] = new Vector2 (-1, -1);
-						}
-						else if(dSI + mapa.GetLength(1) == dDI || dSI - mapa.GetLength(1) == dDI || (dSI % mapa.GetLength(1) != 0 && dSI - 1 == dDI) || (dSI % mapa.GetLength(1) != mapa.GetLength(1) - 1 && dSI + 1 == dDI)){//nasa baba, nasa taas, nasa kaliwa, nasa kanan
-							directionalMap [dSI, dDI] = new Vector2 (dDI, 1);
+					//e, r is the y, x coordinate of the destination tile
+					for (int e = 0; e < mapa.GetLength (0); e++) {
+						for (int r = 0; r < mapa.GetLength (1); r++) {
+							int dDI = (e * mapa.GetLength (1)) + r;
+							if (dSI == dDI || mapa [e, r] == -1 || mapa [q, w] == -1) {//checks kung pwede mapuntahan yung tile
+								directionalMap [dSI, dDI] = new Vector2 (-1, -1);
+							} else if (dSI + mapa.GetLength (1) == dDI || dSI - mapa.GetLength (1) == dDI || (dSI % mapa.GetLength (1) != 0 && dSI - 1 == dDI) || (dSI % mapa.GetLength (1) != mapa.GetLength (1) - 1 && dSI + 1 == dDI)) {//nasa baba, nasa taas, nasa kaliwa, nasa kanan
+								directionalMap [dSI, dDI] = new Vector2 (dDI, 1);
+							}
 						}
 					}
 				}
 			}
-		}
 
-		//fill all the other blanks
-		for(int q = 0; q < mapa.GetLength(0); q++){
-			for(int w = 0; w < mapa.GetLength(1); w++){
-				//q, w is the y, x coordinate of the source tile
-				int dSI = (q * mapa.GetLength(1)) + w;
+			//fill all the other blanks
+			for (int q = 0; q < mapa.GetLength (0); q++) {
+				for (int w = 0; w < mapa.GetLength (1); w++) {
+					//q, w is the y, x coordinate of the source tile
+					int dSI = (q * mapa.GetLength (1)) + w;
 
-				//e, r is the y, x coordinate of the destination tile
-				for(int e = 0; e < mapa.GetLength(0); e++){
-					for(int r = 0; r < mapa.GetLength(1); r++){
-						int dDI = (e * mapa.GetLength(1)) + r;
-						if(directionalMap[dSI,dDI].y == -2){
-							//iplug ang mga nasa row dDI whose [1] == 1
-							//technically dapat queue ginagamit dito e
-							//System.out.println("Looking for path from " + dSI + " to " + dDI);
-							Queue<int[]> queue = new Queue<int[]>();
-							int tempDSI = dSI;
-							int[] currentArr = new int[1];
-							currentArr[0] = 0;
-							while(true){
-								//push the adjacents
-								for(int y = 0; y < numTiles; y++){
-									if(directionalMap[tempDSI, y].y == 1){
-										//first check if y is already inside the queue
-										if(y == dSI) continue;
-										bool nasaLoobNa = false;
-										foreach(int[] arrayKo in queue){
-											bool kailangangLumabas = false;
-											for(int u = 0;u < arrayKo.Length - 1; u++){
-												if(arrayKo[u] == y){
-													nasaLoobNa = true;
-													kailangangLumabas = true;
-													break;
+					//e, r is the y, x coordinate of the destination tile
+					for (int e = 0; e < mapa.GetLength (0); e++) {
+						for (int r = 0; r < mapa.GetLength (1); r++) {
+							int dDI = (e * mapa.GetLength (1)) + r;
+							if (directionalMap [dSI, dDI].y == -2) {
+								//iplug ang mga nasa row dDI whose [1] == 1
+								//technically dapat queue ginagamit dito e
+								//System.out.println("Looking for path from " + dSI + " to " + dDI);
+								Queue<int[]> queue = new Queue<int[]> ();
+								int tempDSI = dSI;
+								int[] currentArr = new int[1];
+								currentArr [0] = 0;
+								while (true) {
+									//push the adjacents
+									for (int y = 0; y < numTiles; y++) {
+										if (directionalMap [tempDSI, y].y == 1) {
+											//first check if y is already inside the queue
+											if (y == dSI)
+												continue;
+											bool nasaLoobNa = false;
+											foreach (int[] arrayKo in queue) {
+												bool kailangangLumabas = false;
+												for (int u = 0; u < arrayKo.Length - 1; u++) {
+													if (arrayKo [u] == y) {
+														nasaLoobNa = true;
+														kailangangLumabas = true;
+														break;
+													}
 												}
+												if (kailangangLumabas)
+													break;
 											}
-											if (kailangangLumabas)
-												break;
-										}
-										if(nasaLoobNa) continue;
+											if (nasaLoobNa)
+												continue;
 
-										//proceed to add the newarray
-										int[] newArr = new int[currentArr.Length + 1];
-										newArr[currentArr.Length] = currentArr[currentArr.Length - 1] + 1;//put the new weight
-										newArr[currentArr.Length - 1] = y;//put the additional tile
-										for(int t = 0; t < (currentArr.Length - 1); t++){//put the original ones
-											newArr[t] = currentArr[t];
-										}
-										/*
+											//proceed to add the newarray
+											int[] newArr = new int[currentArr.Length + 1];
+											newArr [currentArr.Length] = currentArr [currentArr.Length - 1] + 1;//put the new weight
+											newArr [currentArr.Length - 1] = y;//put the additional tile
+											for (int t = 0; t < (currentArr.Length - 1); t++) {//put the original ones
+												newArr [t] = currentArr [t];
+											}
+											/*
 										System.out.println("Using y " + y);
 										System.out.print("Used array ");
 										for(int u = 0; u < currentArr.length; u++){
@@ -513,35 +543,50 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 											System.out.print(newArr[u] + " ");
 										}
 										System.out.println(" ");*/
-										queue.Enqueue(newArr);
+											queue.Enqueue (newArr);
+										}
+									}
+
+									//pop the first in the array
+									int[] toProc = queue.Dequeue ();
+									//check if its the destination
+									if (toProc [toProc.Length - 2] == dDI) {
+										//set the [0] and [1]
+										directionalMap [dSI, dDI] = new Vector2 (toProc [0], toProc [toProc.Length - 1]);
+										break;
+									} else {
+										tempDSI = toProc [toProc.Length - 2];
+										currentArr = toProc;
 									}
 								}
-
-								//pop the first in the array
-								int[] toProc = queue.Dequeue();
-								//check if its the destination
-								if(toProc[toProc.Length - 2] == dDI){
-									//set the [0] and [1]
-									directionalMap[dSI,dDI] = new Vector2(toProc[0], toProc[toProc.Length - 1]);
-									break;
-								}
-								else{
-									tempDSI = toProc[toProc.Length - 2];
-									currentArr = toProc;
-								}
 							}
+							//else{}, wala na tong else e
 						}
-						//else{}, wala na tong else e
 					}
 				}
 			}
-		}
 
-		//transform the directional map
-		dM = new int[numTiles, numTiles];
-		for(int q = 0;q < numTiles; q++){
-			for(int w = 0; w < numTiles; w++){
-				dM[q, w] = (int)directionalMap[q, w].x;
+			//transform the directional map
+			dM = new int[numTiles, numTiles];
+			string toBeSaved = "";
+			for (int q = 0; q < numTiles; q++) {
+				for (int w = 0; w < numTiles; w++) {
+					dM [q, w] = (int)directionalMap [q, w].x;
+					toBeSaved += dM [q, w] + (w == numTiles - 1 ? "" : " ");
+				}
+				toBeSaved += (q == numTiles - 1 ? "" : "\n");
+			}
+			System.IO.File.WriteAllText (UtilsKo.directionalMapFilePath, toBeSaved);
+		} else {
+			//read from file
+			string[] lines = inputInfo.Split('\n');
+			string[] characters = lines [0].Split (' ');
+			dM = new int[lines.Length, characters.Length];
+			for (int q = 0; q < lines.Length; q++) {
+				characters = q == 0 ? characters : lines [q].Split (' ');
+				for (int w = 0; w < characters.Length; w++) {
+					dM [q, w] = int.Parse (characters [w]);
+				}
 			}
 		}
 	}
@@ -843,6 +888,9 @@ public class Table{
 		int baby = Random.Range (0, 4);
 		return entryPoints [baby].GetComponent<Tile> ();
 	}
+	public void addASeat(){
+		availSeats++;
+	}
 	public Table(GameObject[] nb, int xS, int yS){//ayusin ang pointVal flags ng tiles
 		tableTiles = nb;
 		entryPoints = new GameObject[4];
@@ -913,6 +961,13 @@ public class Table{
 	}
 	public int getNumChairs(){//gets available number of seats
 		return availSeats;
+	}
+	public void resetNgKonti(){
+		for (int q = 0; q < entryPoints.Length; q++) {
+			//since wala naman masyadong nagbabago in terms of graphics between an obstacled tile and normal tile, ito na lang
+			entryPoints [q].GetComponent<Tile> ().setPointVal(3);
+			//entryPoints [q].GetComponent<Tile> ().initialize (1, (int)entryPoints [q].GetComponent<Tile> ().getMapIndex().x, (int)entryPoints [q].GetComponent<Tile> ().getMapIndex().y);
+		}
 	}
 	public void seatCharacters(Character head){
 		Character temp = head;
@@ -1009,8 +1064,6 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 
 public class DQNAI : AI{
 	//currentAction acts as currentStates
-	string weightsFilePath = "Weights.txt";
-	string logsFilePath = "Logs.txt";
 	Text forShow;
 	int dS;//difficulty Setting
 	double biasConstant, learningRate;//actually di ako sure kung kailangan biasConstant e
@@ -1036,7 +1089,7 @@ public class DQNAI : AI{
 
 		string weightBabyInputs = "";
 		try{
-			weightBabyInputs = System.IO.File.ReadAllText (weightsFilePath);
+			weightBabyInputs = System.IO.File.ReadAllText (UtilsKo.weightsFilePath);
 		}catch{
 
 		}
@@ -1045,7 +1098,7 @@ public class DQNAI : AI{
 		if (weightBabyInputs.Equals ("")) {//if the weights file doesn't exist
 			//instantiate the weights array, convoluted neural network with an area of 9
 			//calculate for dimension of the weights array first
-			logs += weightsFilePath + " is empty, so generating random weights now\n";
+			logs += UtilsKo.weightsFilePath + " is empty, so generating random weights now\n";
 			for (int qq = 0; qq < 3; qq++) {//to generate 3 different weights
 				int curW = width - 2;
 				int curH = height - 2;
@@ -1078,7 +1131,7 @@ public class DQNAI : AI{
 				weights.Add (weights2);
 			}
 		} else {//read it from file
-			logs += "Reading weights from " + logs + weightsFilePath + "\n";
+			logs += "Reading weights from " + logs + UtilsKo.weightsFilePath + "\n";
 			string[] baby1 = weightBabyInputs.Split('|');
 			//logs += "Detected " + baby1.Length + " sets of weights\n";
 			for (int q = 0; q < baby1.Length; q++) {
@@ -1105,7 +1158,7 @@ public class DQNAI : AI{
 		}
 			
 		//record it all in logs file
-		System.IO.File.AppendAllText(logsFilePath, logs);
+		System.IO.File.AppendAllText(UtilsKo.logsFilePath, logs);
 	}
 	public string getStateRep(int [, ] info){
 		string returnVal = "";
@@ -1187,9 +1240,9 @@ public class DQNAI : AI{
 				}
 				toBeWritten += (e == weights.Count - 1 ? "" : "|");
 			}
-			System.IO.File.WriteAllText (weightsFilePath, toBeWritten);
+			System.IO.File.WriteAllText (UtilsKo.weightsFilePath, toBeWritten);
 		}
-		System.IO.File.AppendAllText (logsFilePath, logs);
+		System.IO.File.AppendAllText (UtilsKo.logsFilePath, logs);
 	}
 	public double getSum(double[] baby){
 		double sum = baby [0];
@@ -1225,6 +1278,7 @@ public class DQNAI : AI{
 			currentAction = 2;
 		memoryPool.Add (new Vector2 (babyMoTo, 0));
 		//Debug.Log ("I chose to move " + currentAction);
+		//currentAction = 0;
 		base.doIt ();
 	}
 	public override void think(int [,] info){//don't use the feature verctors yet, take note that it follows x, y convention

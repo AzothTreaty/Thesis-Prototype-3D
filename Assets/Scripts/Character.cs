@@ -76,6 +76,10 @@ public class Character : MonoBehaviour {// also acts a node in a linked list
 		//Debug.Log("Dapat disabled na ako " + this.gameObject.name);
 	}
 
+	public void destroyMe(){
+		Destroy (this.gameObject);
+	}
+
 	public Character getNext(){
 		return next;
 	}
@@ -521,7 +525,7 @@ public class Barkada{
 
 public class StrangerAI{
 	Character toMove;
-	int currentAction;
+	int currentAction;//2 == 3
 	GameManager gm;
 	Table tableKo;
 	Tile currentPosition, destination;
@@ -534,18 +538,51 @@ public class StrangerAI{
 		//Debug.Log ("Spawned at " + c.getCurrentTile ().getMapIndex ().x + ", " + c.getCurrentTile ().getMapIndex ().y);
 	}
 	public void startMoving(Tile d){
+		//remove yoself from your seat first
+		tableKo.resetNgKonti();
+		tableKo.addASeat ();
+		toMove.changeColor(0);
+		toMove.getCurrentTile().setLaman(null);
+		toMove.getCurrentTile().setOccupied(false);
 		currentPosition = tableKo.getAnEntryPoint ();
 		toMove.setTile (currentPosition);
 		destination = d;
+
+		//Debug.Log ("Started in " + currentPosition.getMapIndex ().x + ", " + currentPosition.getMapIndex ().y);
+		//Debug.Log ("Final Destination " + d.getMapIndex ().x + ", " + d.getMapIndex ().y);
 	}
 	public void think(){
 		//get current position then feed it to the map to get next destination
 		currentAction = gm.getDirections (currentPosition, destination);//Random.Range (0, 4);
+
+		//now normalize currentAction
+		//get heading of toMove
+		/*int currentDir = toMove.getHeading();
+		if (UtilsKo.mod (currentDir + 1, 4) == currentAction)
+			currentAction = 1;//turn right
+		else if (UtilsKo.mod (currentAction - 1, 4) == currentAction)
+			currentAction = 3;
+		else
+			currentAction = 0;*/
+	}
+	public void disable (){
+		toMove.getCurrentTile ().setLaman (null);
+		toMove.getCurrentTile ().setOccupied (false);
+		toMove.destroyMe ();
 	}
 	public void doIt(){
 		//Debug.Log (toMove == null ? "toMove" : gm == null ? "gm" : "wtf?");
-		toMove.Move (gm.getNewTile(currentAction, toMove.getCurrentTile()), currentAction);
-
+		//Debug.Log("Doing action " + currentAction);
+		//Debug.Log ("I am in " + currentPosition.getMapIndex ().x + ", " + currentPosition.getMapIndex ().y);
+	
+		//interpret the currentAction
+		Tile tile = gm.getNewTile(currentAction, toMove.getCurrentTile());
+		//check if in destination already
+		if (tile.equals (toMove.getCurrentTile ())) {
+			gm.removeStranger (this);
+		}
+		else toMove.Move (tile, currentAction);
+		currentPosition = toMove.getCurrentTile ();
 		//Debug.Log ("Moved to " + toMove.getCurrentTile ().getMapIndex ().x + ", " + toMove.getCurrentTile ().getMapIndex ().y);
 	}
 }

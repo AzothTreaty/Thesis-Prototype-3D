@@ -41,7 +41,7 @@ public class Tile : MonoBehaviour {
 	}
 
 	public void setLaman(Character c){
-		if (pointVal == 4)
+		if (pointVal == 4 && c != null)
 			c.changeColor (1);
 		if (c != null) {
 			featureVector [3] = c.getTeamID ();
