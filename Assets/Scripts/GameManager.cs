@@ -24,7 +24,7 @@ public class GameManager : MonoBehaviour{
 	HUDManager dm;
 	RoundManager rm;
 	bool paused, once;
-	DQNAI ai;
+	DQNAI ai, ai2;
 	static GameManager gm;
 	float spawnTime, strangerMoveTime, generalTimer;//generalTimer should not be reset, just modulo it if you want to know if 30 seconds have passed
 	int numTeams;
@@ -40,6 +40,7 @@ public class GameManager : MonoBehaviour{
 		generalTimer = 0f;
 		paused = false;
 		once = true;
+
 		strangersPool = new List<StrangerAI> ();
 		strangersThatMove = new List<StrangerAI> ();
 	
@@ -91,6 +92,21 @@ public class GameManager : MonoBehaviour{
 		ai = GetComponent<DQNAI> ();
 		ai.init (this, 1, map.getWidth(), map.getHeight());
 		ai.setDS (GetComponent<MenuManager> ().getDifficulty ());
+
+		if (GetComponent<MenuManager> ().gaRunning()) {
+			this.gameObject.AddComponent<DQNAI> ();
+			ai2 = GetComponents<DQNAI> ()[1];
+			ai2.init (this, 0, map.getWidth(), map.getHeight());
+			ai2.setDS (GetComponent<MenuManager> ().getPlayer1 ());
+		}
+	}
+
+	public int getWidth(){
+		return map.getWidth ();
+	}
+
+	public int getHeight(){
+		return map.getHeight ();
 	}
 
 	void readMaps(){
