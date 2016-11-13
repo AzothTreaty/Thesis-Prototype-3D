@@ -1067,7 +1067,7 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 				if (timeCur + Time.deltaTime > 1) {
 					think (gm.getDisplayInformation ());
 				} else {
-					learn ();
+					//learn ();
 				}
 				timeCur += Time.deltaTime;
 			}

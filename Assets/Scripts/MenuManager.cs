@@ -10,7 +10,7 @@ public class MenuManager : MonoBehaviour {
 	string textForGameOver;
 	float timePassed;
 	bool startCounting, runGA;
-	int player1, player2;
+	int player1, player2, generationCounter;
 
 	//for GA
 	int popNum, alphaCurFitIndex, width, height;
@@ -85,12 +85,9 @@ public class MenuManager : MonoBehaviour {
 	void stopGA(){
 		//just to consolidate the latest versions of the babies
 		player1 = popNum + 1;
-		runGACore ();
-
-
+		runGACore ();//weights are supposed to be saved in runGACore()
 		runGA = false;
-		//save the weights in the file
-		writeTheWeights();
+		loadMe (2);
 	}
 
 	void startGA(){//player2 is the alpha while player 1 is the rest of the population
@@ -105,38 +102,64 @@ public class MenuManager : MonoBehaviour {
 		height = pinakaLabas [0].Split ('\n').Length;
 		width = pinakaLabas[0].Split('\n')[0].Split (' ').Length;
 
-		//generate the population and the random alpha
-		for (int qq = 0; qq < popNum; qq++) {//to generate 3 different weights
-			int curW = width - 2;
-			int curH = height - 2;
-			List<double[]> weights2 = new List<double[]> ();
-			while (curH > 2 && curW > 2) {//kasi sakto pa kapag == 3
-				double[] temp = new double[12];//9 for actual weights, 1 for bias weight, 2 for width height
-				for (int q = 0; q < 10; q++) {
-					//read the weights from file, but for now instantiate it as random first
-					temp [q] = Random.value;
-				}
-				curH -= 2;
-				curW -= 2;
-				temp [10] = curW;
-				temp [11] = curH;
-				weights2.Add (temp);
-			}
-			//instantiate the weights for the end categories
-			double[] temp2 = new double[curH * curW];
-			for (int w = 0; w < temp2.Length; w++) {
-				temp2 [w] = Random.value;
-			}
-			weights2.Add (temp2);
-			populationWeights.Add (weights2);
+		string weightBabyInputs = "";
+		try{
+			weightBabyInputs = System.IO.File.ReadAllText (UtilsKo.weightsFilePath);
+		}catch{
+
 		}
-		//Debug.Log (populationWeights.Count);
-		writeTheWeights();
+		//generate the population and the random alpha
+		if (weightBabyInputs.Equals ("")) {
+			for (int qq = 0; qq < popNum; qq++) {//to generate 3 different weights
+				int curW = width - 2;
+				int curH = height - 2;
+				List<double[]> weights2 = new List<double[]> ();
+				while (curH > 2 && curW > 2) {//kasi sakto pa kapag == 3
+					double[] temp = new double[12];//9 for actual weights, 1 for bias weight, 2 for width height
+					for (int q = 0; q < 10; q++) {
+						//read the weights from file, but for now instantiate it as random first
+						temp [q] = Random.value;
+					}
+					curH -= 2;
+					curW -= 2;
+					temp [10] = curW;
+					temp [11] = curH;
+					weights2.Add (temp);
+				}
+				//instantiate the weights for the end categories
+				double[] temp2 = new double[curH * curW];
+				for (int w = 0; w < temp2.Length; w++) {
+					temp2 [w] = Random.value;
+				}
+				weights2.Add (temp2);
+				populationWeights.Add (weights2);
+			}
+			//Debug.Log (populationWeights.Count);
+			writeTheWeights ();
+		} else {
+			string[] baby1 = weightBabyInputs.Split('|');
+			//logs += "Detected " + baby1.Length + " sets of weights\n";
+			for (int q = 0; q < baby1.Length; q++) {
+				List<double[]> weights2 = new List<double[]> ();
+				string[] baby2 = baby1 [q].Split ('\n');
+				//logs += "Detected " + baby2.Length + " layers of weights\n";
+				for (int w = 0; w < baby2.Length - 1; w++) {
+					string[] baby3 = baby2 [w].Split (' ');
+					double[] newInputs = new double[baby3.Length];
+					for (int e = 0; e < baby3.Length; e++) {
+						//System.IO.File.AppendAllText(logsFilePath, logs + "+======================");
+						newInputs [e] = double.Parse (baby3[e]);
+					}
+					weights2.Add (newInputs);
+				}
+				populationWeights.Add (weights2);
+			}
+		}
 
 		runGA = true;
 		player1 = 1;
+		fitnessScores.Add (new Vector2 (0, 0));
 		selectedDifficulty (0);
-		fitnessScores.Add (new Vector2(0, 0));
 	}
 
 	void writeTheWeights(){
@@ -174,19 +197,23 @@ public class MenuManager : MonoBehaviour {
 		loadLevel (2);
 	}
 
-	public void inputTeamData(Team[] teams){
-		//process the data from the teams
-		mm.textForGameOver = "";
+	void totoongInputTeamData(Team[] teams){
+		textForGameOver = "Pitting " + player1 + " in generation " + generationCounter + "\n";
 		Debug.Log ("SUsubukan ko nang bigyan ng information si menumanager");
 		foreach (Team t in teams) {
-			mm.textForGameOver += "Team " + t.getID () + " has seated " + t.getAcuSeated () + " and got " + t.getAcumulatedSplits () + " splits thereby gaining " + t.getScore () + " points\n";
+			textForGameOver += "Team " + t.getID () + " has seated " + t.getAcuSeated () + " and got " + t.getAcumulatedSplits () + " splits thereby gaining " + t.getScore () + " points\n";
 			Debug.Log ("Napalitan ko na");
 		}
-		Debug.Log (alphaCurFitIndex);
+		//Debug.Log (alphaCurFitIndex);
 		fitnessScores [alphaCurFitIndex] = new Vector2(((fitnessScores [alphaCurFitIndex].x * player1) + teams [0].getScore ()) / (float)player1, 0);
 		fitnessScores.Add(new Vector2(teams [1].getScore(), player1));
 		if (teams.Length == 0)
 			Debug.Log ("Bakit walang laman tong si kuya?");
+	}
+
+	public void inputTeamData(Team[] teams){
+		//process the data from the teams
+		mm.totoongInputTeamData(teams);
 	}
 
 	void runGACore(){
@@ -208,11 +235,14 @@ public class MenuManager : MonoBehaviour {
 		else if(gaRunning() && player1 >= popNum){
 			//the top 10 in fitness function is the basis for making the population
 			//rearrange the weights
-			for (int q = 0; q < 10; q++) {
+			int qHolder = 0;
+			for (int q = 0; q < 10 && q < fitnessScores.Count; q++) {
 				populationWeights.Add (populationWeights[(int)fitnessScores[q].y]);
+				qHolder = q;
 			}
 			Debug.Log ("Popweights count: " + populationWeights.Count);
-			populationWeights.RemoveRange (0, popNum);
+			populationWeights.RemoveRange (0, qHolder + 1);
+			populationWeights.RemoveRange (0, 10);//clear the remainder of the babies
 			Debug.Log ("Popweights count is: " + populationWeights.Count);
 			//run crossover algorithm and mutation rates
 			for (int q = 0; q < popNum - 10 - (popNum / 10); q++) {//10% of population is going to be random
@@ -268,10 +298,11 @@ public class MenuManager : MonoBehaviour {
 				populationWeights.Add (weights2);
 			}
 			Debug.Log ("After adding randoms, the population weights count is: " + populationWeights.Count);
-		
+			writeTheWeights ();//to save the edited version of the weights after a generation
 			//clear the fitnessScore array just to be sure
 			fitnessScores.Clear();
 			fitnessScores.Add (new Vector2 (0, 0));
+			generationCounter++;
 		}
 	}
 
@@ -294,7 +325,6 @@ public class MenuManager : MonoBehaviour {
 	}
 
 	public void loadLevel(int i){
-		GUI.tooltip = "0 == MainGame, * == GameOver";
 		mm.loadMe (i);
 	}
 	
