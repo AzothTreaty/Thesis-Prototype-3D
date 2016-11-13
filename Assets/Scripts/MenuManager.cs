@@ -10,10 +10,10 @@ public class MenuManager : MonoBehaviour {
 	string textForGameOver;
 	float timePassed;
 	bool startCounting, runGA;
-	int player1, player2, generationCounter;
+	int player1, player2, mapSelected;
 
 	//for GA
-	int popNum, alphaCurFitIndex, width, height;
+	int popNum, alphaCurFitIndex, width, height, generationCounter;
 	List<Vector2> fitnessScores;
 	List<List<double[]>> populationWeights;
 	double mutationRate, crossoverRate;
@@ -71,6 +71,36 @@ public class MenuManager : MonoBehaviour {
 			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(2));
 		}
 
+		baby = GameObject.Find("Diff3");
+		if (baby != null) {
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(3));
+		}
+
+		baby = GameObject.Find("Diff4");
+		if (baby != null) {
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(4));
+		}
+
+		baby = GameObject.Find("Diff5");
+		if (baby != null) {
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(5));
+		}
+
+		baby = GameObject.Find("Diff6");
+		if (baby != null) {
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(6));
+		}
+
+		baby = GameObject.Find("Diff7");
+		if (baby != null) {
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(7));
+		}
+
+		baby = GameObject.Find("Diff8");
+		if (baby != null) {
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(8));
+		}
+
 		baby = GameObject.Find ("GA");
 		if (baby != null) {
 			baby.GetComponent<Button>().onClick.AddListener (() => mm.startGA());
@@ -104,7 +134,7 @@ public class MenuManager : MonoBehaviour {
 
 		string weightBabyInputs = "";
 		try{
-			weightBabyInputs = System.IO.File.ReadAllText (UtilsKo.weightsFilePath);
+			weightBabyInputs = System.IO.File.ReadAllText (UtilsKo.weightsFilePath + getMapSelected() + ".txt");
 		}catch{
 
 		}
@@ -173,7 +203,7 @@ public class MenuManager : MonoBehaviour {
 			}
 			toBeWritten += (e == populationWeights.Count - 1 ? "" : "|");
 		}
-		System.IO.File.WriteAllText (UtilsKo.weightsFilePath, toBeWritten);
+		System.IO.File.WriteAllText (UtilsKo.weightsFilePath + getMapSelected() + ".txt", toBeWritten);
 	}
 
 	public bool gaRunning(){
@@ -190,6 +220,7 @@ public class MenuManager : MonoBehaviour {
 
 	void selectedDifficulty(int diff){
 		player2 = diff;
+		mapSelected = GameObject.Find("MapSelect").GetComponent<Dropdown> ().value;
 		loadLevel (0);
 	}
 
@@ -214,6 +245,10 @@ public class MenuManager : MonoBehaviour {
 	public void inputTeamData(Team[] teams){
 		//process the data from the teams
 		mm.totoongInputTeamData(teams);
+	}
+
+	public int getMapSelected(){
+		return mm.mapSelected;
 	}
 
 	void runGACore(){

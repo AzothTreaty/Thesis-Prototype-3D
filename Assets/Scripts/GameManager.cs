@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public static class UtilsKo{
 	public static string gameLogsFilePath = "GameLogs.txt";
-	public static string weightsFilePath = "Weights.txt";
+	public static string weightsFilePath = "Weights";
 	public static string logsFilePath = "Logs.txt";
 	public static string directionalMapFilePath = "DirectionalMap.txt";
 	public static int mod(int a, int b){
@@ -54,7 +54,7 @@ public class GameManager : MonoBehaviour{
 		maps = new List<int[,]> ();
 		readMaps();
 		//map.initialize (30, 20, 4);
-		map.initialize(maps[0]);
+		map.initialize(maps[GetComponent<MenuManager>().getMapSelected()]);
 
 		//initialize team
 		numTeams = 2;
@@ -345,7 +345,7 @@ public class GameManager : MonoBehaviour{
 		temp.GetComponent<Character> ().initializeMe (tile1, null);
 	}
 	public int getDirections(Tile s, Tile d){
-		//Debug.Log ("Pumasok sa game manager ang source tile at " + s.getMapIndex ().x + ", " + s.getMapIndex ().y + " at " + d.getMapIndex ().x + ", " + d.getMapIndex ().y + " with width of " + map.getWidth());
+		Debug.Log ("Pumasok sa game manager ang source tile at " + s.getMapIndex ().x + ", " + s.getMapIndex ().y + " at " + d.getMapIndex ().x + ", " + d.getMapIndex ().y + " with width of " + map.getWidth());
 		int returnVal = map.fromDirectionalToReal (s, map.getProjectedNextTile((int)((s.getMapIndex().y * map.getWidth()) + s.getMapIndex().x), (int)((d.getMapIndex().y * map.getWidth()) + d.getMapIndex().x)));
 		//Debug.Log ("Please turn " + returnVal);
 		return returnVal;
@@ -1105,7 +1105,7 @@ public class DQNAI : AI{
 
 		string weightBabyInputs = "";
 		try{
-			weightBabyInputs = System.IO.File.ReadAllText (UtilsKo.weightsFilePath);
+			weightBabyInputs = System.IO.File.ReadAllText (UtilsKo.weightsFilePath + GetComponent<MenuManager>().getMapSelected() + ".txt");
 		}catch{
 
 		}
@@ -1256,7 +1256,7 @@ public class DQNAI : AI{
 				}
 				toBeWritten += (e == weights.Count - 1 ? "" : "|");
 			}
-			System.IO.File.WriteAllText (UtilsKo.weightsFilePath, toBeWritten);
+			System.IO.File.WriteAllText (UtilsKo.weightsFilePath + GetComponent<MenuManager>().getMapSelected() + ".txt", toBeWritten);
 		}
 		System.IO.File.AppendAllText (UtilsKo.logsFilePath, logs);
 	}
