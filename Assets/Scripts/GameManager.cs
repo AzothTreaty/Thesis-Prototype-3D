@@ -7,7 +7,7 @@ public static class UtilsKo{
 	public static string gameLogsFilePath = "GameLogs.txt";
 	public static string weightsFilePath = "Weights";
 	public static string logsFilePath = "Logs.txt";
-	public static string directionalMapFilePath = "DirectionalMap.txt";
+	public static string directionalMapFilePath = "DirectionalMap";
 	public static int mod(int a, int b){
 		return (a % b + b) % b;
 	}
@@ -457,7 +457,12 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 	}
 
 	public void initializeDirectionalMap(){
-		string inputInfo = System.IO.File.ReadAllText (UtilsKo.directionalMapFilePath);
+		string inputInfo = "";
+		try{
+			inputInfo = System.IO.File.ReadAllText (UtilsKo.directionalMapFilePath + GetComponent<MenuManager>().getMapSelected() + ".txt");
+		} catch{
+
+		}
 		if (inputInfo.Equals ("")) {
 			//make mapa
 			int[,] mapa = new int[yQuant, xQuant];
@@ -592,7 +597,7 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 				}
 				toBeSaved += (q == numTiles - 1 ? "" : "\n");
 			}
-			System.IO.File.WriteAllText (UtilsKo.directionalMapFilePath, toBeSaved);
+			System.IO.File.WriteAllText (UtilsKo.directionalMapFilePath + GetComponent<MenuManager>().getMapSelected() + ".txt", toBeSaved);
 		} else {
 			//read from file
 			string[] lines = inputInfo.Split('\n');
