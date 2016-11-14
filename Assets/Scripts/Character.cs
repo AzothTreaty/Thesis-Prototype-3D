@@ -12,9 +12,15 @@ public class Character : MonoBehaviour {// also acts a node in a linked list
 	StrangerAI sAI;
 	bool aiEnabled;
 	float targetTime, curTime;
+    Animator anim; 
 	// Use this for initialization
+
+    void Awake ()
+    {
+        anim = GetComponent<Animator>();
+    }
 	void Start () {
-		
+
 	}
 
 	public int getTeamID(){// -1 for strangers
@@ -144,7 +150,7 @@ public class Character : MonoBehaviour {// also acts a node in a linked list
 				//Debug.Log ("I am moving " + this.name);
 				this.gameObject.transform.position = newTile.getPosition ();
 
-				//change animation
+				//change animation MOVEMENT ANIM
 				//show movement in the same direction
 				/*if (spriteIndex < 2) {
 					spriteIndex = 2;
@@ -153,6 +159,7 @@ public class Character : MonoBehaviour {// also acts a node in a linked list
 				}
 				chSIndex++;*/
 			} else {
+                //dito mo ako i-rotate
 				currentDir = dir;
 				//Debug.Log ("curDir is " + dir);
 				//show turning animation
