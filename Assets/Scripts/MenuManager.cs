@@ -207,7 +207,11 @@ public class MenuManager : MonoBehaviour {
 	}
 
 	public bool gaRunning(){
+<<<<<<< HEAD
 		return mm == null ? false: mm.runGA;
+=======
+		return mm == null ? false : mm.runGA;
+>>>>>>> 1c5f019c304f10ce89146bbc142d9a52b0192d92
 	}
 
 	public int getDifficulty(){
@@ -229,15 +233,17 @@ public class MenuManager : MonoBehaviour {
 	}
 
 	void totoongInputTeamData(Team[] teams){
-		textForGameOver = "Pitting " + player1 + " in generation " + generationCounter + "\n";
+		if (runGA) {
+			textForGameOver = "Pitting " + player1 + " in generation " + generationCounter + "\n";
+			//Debug.Log (alphaCurFitIndex);
+			fitnessScores [alphaCurFitIndex] = new Vector2(((fitnessScores [alphaCurFitIndex].x * player1) + teams [0].getScore ()) / (float)player1, 0);
+			fitnessScores.Add(new Vector2(teams [1].getScore(), player1));
+		}
 		Debug.Log ("SUsubukan ko nang bigyan ng information si menumanager");
 		foreach (Team t in teams) {
 			textForGameOver += "Team " + t.getID () + " has seated " + t.getAcuSeated () + " and got " + t.getAcumulatedSplits () + " splits thereby gaining " + t.getScore () + " points\n";
 			Debug.Log ("Napalitan ko na");
 		}
-		//Debug.Log (alphaCurFitIndex);
-		fitnessScores [alphaCurFitIndex] = new Vector2(((fitnessScores [alphaCurFitIndex].x * player1) + teams [0].getScore ()) / (float)player1, 0);
-		fitnessScores.Add(new Vector2(teams [1].getScore(), player1));
 		if (teams.Length == 0)
 			Debug.Log ("Bakit walang laman tong si kuya?");
 	}
