@@ -1151,14 +1151,9 @@ public class DQNAI : AI{
 
 				weights.Add (weights2);
 			}
-<<<<<<< HEAD
             saveTheWeights();
-		} else {//read it from file
-=======
-			saveTheWeights ();
 		} 
 		else {//read it from file
->>>>>>> 1c5f019c304f10ce89146bbc142d9a52b0192d92
 			logs += "Reading weights from " + logs + UtilsKo.weightsFilePath + "\n";
 			string[] baby1 = weightBabyInputs.Split('|');
 			//logs += "Detected " + baby1.Length + " sets of weights\n";
@@ -1256,11 +1251,6 @@ public class DQNAI : AI{
 					memoryPool.RemoveAt (0);
 				}
 			}
-
-<<<<<<< HEAD
-            //finally record the recorded weights in the file "Weights"
-            saveTheWeights();
-=======
 			//finally record the recorded weights in the file "Weights"
 			saveTheWeights();
 		}
@@ -1276,27 +1266,9 @@ public class DQNAI : AI{
 				toBeWritten += "\n";
 			}
 			toBeWritten += (e == weights.Count - 1 ? "" : "|");
->>>>>>> 1c5f019c304f10ce89146bbc142d9a52b0192d92
 		}
 		System.IO.File.WriteAllText (UtilsKo.weightsFilePath + GetComponent<MenuManager>().getMapSelected() + ".txt", toBeWritten);
 	}
-    void saveTheWeights()
-    {
-        string toBeWritten = "";
-        for (int e = 0; e < weights.Count; e++)
-        {
-            for (int q = 0; q < weights[e].Count; q++)
-            {
-                for (int w = 0; w < weights[e][q].Length; w++)
-                {
-                    toBeWritten += weights[e][q][w] + (w == (weights[e][q].Length - 1) ? "" : " ");
-                }
-                toBeWritten += "\n";
-            }
-            toBeWritten += (e == weights.Count - 1 ? "" : "|");
-        }
-        System.IO.File.WriteAllText(UtilsKo.weightsFilePath + GetComponent<MenuManager>().getMapSelected() + ".txt", toBeWritten);
-    }
 	public double getSum(double[] baby){
 		double sum = baby [0];
 		for (int q = 1; q < baby.Length; q++) {

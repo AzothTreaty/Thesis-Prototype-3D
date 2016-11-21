@@ -209,11 +209,7 @@ public class MenuManager : MonoBehaviour {
 	}
 
 	public bool gaRunning(){
-<<<<<<< HEAD
-		return mm == null ? false: mm.runGA;
-=======
 		return mm == null ? false : mm.runGA;
->>>>>>> 1c5f019c304f10ce89146bbc142d9a52b0192d92
 	}
 
 	public int getDifficulty(){
