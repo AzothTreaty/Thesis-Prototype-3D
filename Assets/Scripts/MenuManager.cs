@@ -207,7 +207,7 @@ public class MenuManager : MonoBehaviour {
 	}
 
 	public bool gaRunning(){
-		return mm.runGA;
+		return mm == null ? false: mm.runGA;
 	}
 
 	public int getDifficulty(){
@@ -248,7 +248,7 @@ public class MenuManager : MonoBehaviour {
 	}
 
 	public int getMapSelected(){
-		return mm.mapSelected;
+		return mm == null ? 0 : mm.mapSelected;
 	}
 
 	void runGACore(){
