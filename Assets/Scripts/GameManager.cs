@@ -345,7 +345,7 @@ public class GameManager : MonoBehaviour{
 		temp.GetComponent<Character> ().initializeMe (tile1, null);
 	}
 	public int getDirections(Tile s, Tile d){
-		Debug.Log ("Pumasok sa game manager ang source tile at " + s.getMapIndex ().x + ", " + s.getMapIndex ().y + " at " + d.getMapIndex ().x + ", " + d.getMapIndex ().y + " with width of " + map.getWidth());
+		//Debug.Log ("Pumasok sa game manager ang source tile at " + s.getMapIndex ().x + ", " + s.getMapIndex ().y + " at " + d.getMapIndex ().x + ", " + d.getMapIndex ().y + " with width of " + map.getWidth());
 		int returnVal = map.fromDirectionalToReal (s, map.getProjectedNextTile((int)((s.getMapIndex().y * map.getWidth()) + s.getMapIndex().x), (int)((d.getMapIndex().y * map.getWidth()) + d.getMapIndex().x)));
 		//Debug.Log ("Please turn " + returnVal);
 		return returnVal;
@@ -1304,9 +1304,6 @@ public class DQNAI : AI{
 		}
 		return sum;
 	}
-	public double getSignal (int[,] info){//uses sigmoid function to depict the final signal
-		return 0;
-	}
 	public override void doIt (){
 
 		//since technically nasa learning phase pa lang siya, bagay pa to, pero kapag nasa production phase na, kunin mo na lang yung max distribution tapos yun ang gamitin mo
@@ -1318,14 +1315,17 @@ public class DQNAI : AI{
 		float a = (float)(1.0 / (1.0 + Mathf.Exp(-1.0f * b)));
 
 
+		Debug.Log ("Hi, activated function is " + b);
+		Debug.Log ("It also has " + a);
+
 		//Debug.Log("Sum is " + sum
 		if (a > 1)
 			Debug.Log ("What the fuck? check the distributions calculation in doIt()");
 		//revert the currentAction variable to its original usage
 
-		if (a <= 1.0/3.0)
+		if (a <= 0.51f)
 			currentAction = 0;
-		else if (1.0/3.0 < a && a < 2.0/3.0)
+		else if (0.51f < a && a < 0.63f)
 			currentAction = 1;
 		else
 			currentAction = 2;
@@ -1356,6 +1356,7 @@ public class DQNAI : AI{
 			}
 		}
 		//start feeding data to the convoluted network
+		Debug.Log("dS is " + dS);
 		for (int q = 0; q < weights[dS].Count - 1; q++) {
 			double[,] constructingMap = new double[(int)weights[dS] [q] [10], (int)weights[dS] [q] [11]];
 			//Debug.Log (currentMap.GetLength (0) + ", " + currentMap.GetLength (1));
