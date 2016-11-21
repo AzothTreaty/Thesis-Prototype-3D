@@ -58,22 +58,22 @@ public class MenuManager : MonoBehaviour {
 		//for scene gameStart
 		baby = GameObject.Find("Diff0");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(0));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(8));
 		}
 
 		baby = GameObject.Find("Diff1");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(1));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(7));
 		}
 
 		baby = GameObject.Find("Diff2");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(2));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(6));
 		}
 
 		baby = GameObject.Find("Diff3");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(3));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(5));
 		}
 
 		baby = GameObject.Find("Diff4");
@@ -83,22 +83,22 @@ public class MenuManager : MonoBehaviour {
 
 		baby = GameObject.Find("Diff5");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(5));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(3));
 		}
 
 		baby = GameObject.Find("Diff6");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(6));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(2));
 		}
 
 		baby = GameObject.Find("Diff7");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(7));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(1));
 		}
 
 		baby = GameObject.Find("Diff8");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(8));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(0));
 		}
 
 		baby = GameObject.Find ("GA");
@@ -165,7 +165,7 @@ public class MenuManager : MonoBehaviour {
 				populationWeights.Add (weights2);
 			}
 			//Debug.Log (populationWeights.Count);
-			writeTheWeights ();
+			writeTheWeights (true);
 		} else {
 			string[] baby1 = weightBabyInputs.Split('|');
 			//logs += "Detected " + baby1.Length + " sets of weights\n";
@@ -192,7 +192,7 @@ public class MenuManager : MonoBehaviour {
 		selectedDifficulty (0);
 	}
 
-	void writeTheWeights(){
+	void writeTheWeights(bool saveItIn1){
 		string toBeWritten = "";
 		for (int e = 0; e < populationWeights.Count; e++) {
 			for (int q = 0; q < populationWeights [e].Count; q++) {
@@ -204,6 +204,8 @@ public class MenuManager : MonoBehaviour {
 			toBeWritten += (e == populationWeights.Count - 1 ? "" : "|");
 		}
 		System.IO.File.WriteAllText (UtilsKo.weightsFilePath + getMapSelected() + ".txt", toBeWritten);
+
+		if(saveItIn1) System.IO.File.WriteAllText (UtilsKo.weightsFilePath + getMapSelected() + "FirstGen" + ".txt", toBeWritten);
 	}
 
 	public bool gaRunning(){
@@ -215,7 +217,7 @@ public class MenuManager : MonoBehaviour {
 	}
 
 	public int getPlayer1(){
-		return mm == null ? -1 : mm.player1;
+		return mm == null ? 1 : mm.player1;
 	}
 
 	void selectedDifficulty(int diff){
@@ -254,7 +256,7 @@ public class MenuManager : MonoBehaviour {
 	}
 
 	void runGACore(){
-		if (gaRunning() && player1 + 1 < popNum){
+		if (gaRunning() && player1 + 1 <= popNum){
 			//rearrange the list of popweights
 			int currentIndex = player1;
 			while (currentIndex >= 1 && fitnessScores[currentIndex].x > fitnessScores[currentIndex - 1].x) {
@@ -335,11 +337,12 @@ public class MenuManager : MonoBehaviour {
 				populationWeights.Add (weights2);
 			}
 			Debug.Log ("After adding randoms, the population weights count is: " + populationWeights.Count);
-			writeTheWeights ();//to save the edited version of the weights after a generation
+			writeTheWeights (false);//to save the edited version of the weights after a generation
 			//clear the fitnessScore array just to be sure
 			fitnessScores.Clear();
 			fitnessScores.Add (new Vector2 (0, 0));
 			generationCounter++;
+			player1 = 1;
 		}
 	}
 
@@ -367,7 +370,7 @@ public class MenuManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (timePassed > 20f) {
+		if (timePassed > 2.0f) {
 			timePassed = 0f;
 			restartButtonListener ();
 		}
