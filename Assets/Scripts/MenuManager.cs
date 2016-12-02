@@ -13,7 +13,8 @@ public class MenuManager : MonoBehaviour {
 	int player1, player2, mapSelected;
 
 	//for GA
-	int popNum, alphaCurFitIndex, width, height, generationCounter;
+	public int generationCounter;
+	int popNum, alphaCurFitIndex, width, height;
 	List<Vector2> fitnessScores;
 	List<List<double[]>> populationWeights;
 	double mutationRate, crossoverRate;
@@ -58,47 +59,47 @@ public class MenuManager : MonoBehaviour {
 		//for scene gameStart
 		baby = GameObject.Find("Diff0");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(8));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(8, 0));
 		}
 
 		baby = GameObject.Find("Diff1");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(7));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(7, 0));
 		}
 
 		baby = GameObject.Find("Diff2");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(6));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(6, 0));
 		}
 
 		baby = GameObject.Find("Diff3");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(5));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(5, 0));
 		}
 
 		baby = GameObject.Find("Diff4");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(4));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(4, 0));
 		}
 
 		baby = GameObject.Find("Diff5");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(3));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(3, 0));
 		}
 
 		baby = GameObject.Find("Diff6");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(2));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(2, 0));
 		}
 
 		baby = GameObject.Find("Diff7");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(1));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(1, 0));
 		}
 
 		baby = GameObject.Find("Diff8");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(0));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(0, 0));
 		}
 
 		baby = GameObject.Find ("GA");
@@ -109,6 +110,21 @@ public class MenuManager : MonoBehaviour {
 		baby = GameObject.Find ("DoneGA");
 		if (baby != null) {
 			baby.GetComponent<Button>().onClick.AddListener (() => mm.stopGA());
+		}
+
+		baby = GameObject.Find ("SaveIt");
+		if (baby != null) {
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.stopGA());
+		}
+
+		if (mm.gaRunning ()) {
+			GameObject[] babiesKoTo = GameObject.FindGameObjectsWithTag ("Untagged");
+			for (int q = 0; q < babiesKoTo.Length; q++) {
+				babiesKoTo [q].SetActive (false);
+			}
+			Debug.Log (babiesKoTo.Length);
+		} else {
+			Debug.Log("ggdes");
 		}
 	}
 
@@ -189,7 +205,7 @@ public class MenuManager : MonoBehaviour {
 		runGA = true;
 		player1 = 1;
 		fitnessScores.Add (new Vector2 (0, 0));
-		selectedDifficulty (0);
+		selectedDifficulty (0, 3);
 	}
 
 	void writeTheWeights(bool saveItIn1){
@@ -220,10 +236,10 @@ public class MenuManager : MonoBehaviour {
 		return mm == null ? 1 : mm.player1;
 	}
 
-	void selectedDifficulty(int diff){
+	void selectedDifficulty(int diff, int levelToLoad){
 		player2 = diff;
 		mapSelected = GameObject.Find("MapSelect").GetComponent<Dropdown> ().value;
-		loadLevel (0);
+		loadLevel (levelToLoad);
 	}
 
 	void goBackToStart(){
@@ -256,7 +272,7 @@ public class MenuManager : MonoBehaviour {
 	}
 
 	void runGACore(){
-		if (gaRunning() && player1 + 1 <= popNum){
+		if (gaRunning() && player1 + 1 < popNum){
 			//rearrange the list of popweights
 			int currentIndex = player1;
 			while (currentIndex >= 1 && fitnessScores[currentIndex].x > fitnessScores[currentIndex - 1].x) {
@@ -347,8 +363,12 @@ public class MenuManager : MonoBehaviour {
 	}
 
 	void restartButtonListener(){
-		runGACore ();
-		loadLevel (0);
+		if (gaRunning ()) {
+			runGACore ();
+			loadLevel (3);
+		} else {
+			loadLevel (0);
+		}
 	}
 
 	private void loadMe(int i){
@@ -358,9 +378,14 @@ public class MenuManager : MonoBehaviour {
 		} else if (i == 1) {
 			startCounting = true;
 			SceneManager.LoadScene ("GameOver");
-		} else {
+		} else if (i == 2) {
 			startCounting = false;
 			SceneManager.LoadScene ("GameStart");
+		} else if (i == 3) {
+			startCounting = false;
+			SceneManager.LoadScene ("GAScreen");
+		} else {
+			Debug.Log ("Hi Hello po");
 		}
 	}
 

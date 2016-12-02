@@ -204,7 +204,7 @@ public class Character : MonoBehaviour {// also acts a node in a linked list
 
 	public void changeColor(int i){
 		//Debug.Log (mat.Length);
-		if (i < mat.Length) {
+		if (mat != null && i < mat.Length) {
 			foreach (MeshRenderer ii in GetComponentsInChildren<MeshRenderer>()) {
 				ii.material = mat [i];
 			}
@@ -226,7 +226,7 @@ public class Character : MonoBehaviour {// also acts a node in a linked list
 			}
 		}
 	}*/
-	public StrangerAI setUpStranger(GameManager gm, Table t){
+	public StrangerAI setUpStranger(GameManagerOld gm, Table t){
 		startProperly ();//dapat dito dahil pinapalitan ng constructor ng strangerai ang name ng character
 		sAI = new StrangerAI (gm, this, t);
 		targetTime = 2f;
@@ -306,7 +306,7 @@ public class Team : MonoBehaviour{
 		deltaScore = score;
 		currentAcumulativeScore += score;
 	}
-	public void initialize(int id, Tile ti, float mT){
+	public void initialize(int id, Tile ti, float mT, bool forGA){
 		size = 0;
 		curTime = 0;
 		maxTime = mT;
@@ -320,7 +320,12 @@ public class Team : MonoBehaviour{
 		deltaScore = currentAcumulativeScore = 0;
 
 		for(int q = 0; q < maxChars; q++){
-			append ((GameObject)Instantiate (Resources.Load("Prefabs/PlayerPrefab", typeof(GameObject))));//characters are automatically disabled at start
+			if (forGA) {
+				GameObject temp = new GameObject ();
+				temp.AddComponent<Character> ();
+				append (temp);
+			}
+			else append ((GameObject)Instantiate (Resources.Load("Prefabs/PlayerPrefab", typeof(GameObject))));//characters are automatically disabled at start
 		}
 		//Debug.Log ("initial size is " + size);
 		barkada = new Barkada (this);
@@ -533,10 +538,10 @@ public class Barkada{
 public class StrangerAI{
 	Character toMove;
 	int currentAction;//2 == 3
-	GameManager gm;
+	GameManagerOld gm;
 	Table tableKo;
 	Tile currentPosition, destination;
-	public StrangerAI(GameManager g, Character c, Table t){
+	public StrangerAI(GameManagerOld g, Character c, Table t){
 		toMove = c;
 		gm = g;
 		tableKo = t;

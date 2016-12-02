@@ -4,10 +4,10 @@ using System.Collections;
 
 public class Pauser : MonoBehaviour {
 	bool paused;
-	GameManager gm;
+	GameManagerOld gm;
 	// Use this for initialization
 	void Start () {
-		gm = GetComponent<GameManager> ();
+		gm = GetComponent<GameManagerOld> ();
 		paused = false;
 		//Button b = GameObject.Find ("PauseButton").GetComponent<Button> ();
 		//b.onClick.AddListener (() => listenerKo ());

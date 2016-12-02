@@ -5,7 +5,7 @@ using System.Collections;
 public class RoundManager : MonoBehaviour {
 	int numberOfRounds;
 	Team[] teams;
-	GameManager gm;
+	GameManagerOld gm;
 	bool calculated;
 	float timePassed;
 	// Use this for initialization
@@ -13,7 +13,7 @@ public class RoundManager : MonoBehaviour {
 		Button babyKo = GetComponentInChildren<Button> ();
 		babyKo.onClick.AddListener(() => listenerKo());
 		calculated = false;
-		numberOfRounds = 10;
+		numberOfRounds = UtilsKo.maxRounds;
 		timePassed = 0f;
 	}
 
@@ -22,7 +22,7 @@ public class RoundManager : MonoBehaviour {
 		calculated = false;
 	}
 		
-	public void initMe(Team[] t, GameManager g){
+	public void initMe(Team[] t, GameManagerOld g){
 		teams = t;
 		gm = g;
 	}
