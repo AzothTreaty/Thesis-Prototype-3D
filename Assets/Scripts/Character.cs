@@ -19,9 +19,6 @@ public class Character : MonoBehaviour {// also acts a node in a linked list
     {
         anim = GetComponent<Animator>();
     }
-	void Start () {
-
-	}
 
 	public int getTeamID(){// -1 for strangers
 		return teamID;
@@ -91,19 +88,6 @@ public class Character : MonoBehaviour {// also acts a node in a linked list
 	}
 	public void setNext(Character c){
 		next = c;
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		if (sAI != null && aiEnabled) {
-			if (curTime >= targetTime) {
-				sAI.think ();
-				sAI.doIt ();
-				curTime = 0f;
-			} else {
-				curTime += Time.deltaTime;
-			}
-		}
 	}
 
 	public Tile getCurrentTile(){
@@ -330,9 +314,6 @@ public class Team : MonoBehaviour{
 		//Debug.Log ("initial size is " + size);
 		barkada = new Barkada (this);
 		getNewBarkada ();
-	}
-	void Update(){
-		
 	}
 	public void pauseMe(){
 		Character current = head;

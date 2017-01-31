@@ -69,11 +69,6 @@ public class Tile : MonoBehaviour {
 	public Table getTable(){
 		return myTable;
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
 
 	public int getDirection(){
 		return direction;

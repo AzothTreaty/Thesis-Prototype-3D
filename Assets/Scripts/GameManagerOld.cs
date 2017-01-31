@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 
 public static class UtilsKo{
 	public static string gameLogsFilePath = "GameLogs.txt";
@@ -12,6 +13,7 @@ public static class UtilsKo{
 	public static int tileW = 10;
 	public static int maxRounds = 10;
 	public static int roundLength = 30;
+	public static int iterationCount = 0;
 	public static int mod(int a, int b){
 		return (a % b + b) % b;
 	}
@@ -31,7 +33,7 @@ public class GameManagerOld : MonoBehaviour{
 	bool paused, once;
 	public DQNAI ai, ai2;
 	static GameManagerOld gm;
-	float spawnTime, strangerMoveTime, generalTimer;//generalTimer should not be reset, just modulo it if you want to know if 30 seconds have passed
+	float spawnTime, strangerMoveTime, generalTimer, tempTimerKo;//generalTimer should not be reset, just modulo it if you want to know if 30 seconds have passed
 	int numTeams, numRounds;
 	GameObject roundMaster, minimap;
 	public void removeStranger(StrangerAI sai){
@@ -41,6 +43,7 @@ public class GameManagerOld : MonoBehaviour{
 	}
 	void Start(){
 		spawnTime = 0f;
+		tempTimerKo = 0;
 		strangerMoveTime = 0f;
 		generalTimer = 0f;
 		paused = false;
@@ -112,6 +115,9 @@ public class GameManagerOld : MonoBehaviour{
 			ai2 = GetComponents<DQNAI> ()[1];
 			ai2.init (this, 0, map.getWidth(), map.getHeight());
 			ai2.setDS (GetComponent<MenuManager> ().getPlayer1 ());
+			while (true) {
+				UpdateKo ();
+			}
 		}
 	}
 
@@ -287,7 +293,7 @@ public class GameManagerOld : MonoBehaviour{
 		return returnVal;
 	}
 
-	void Update () {
+	void Update(){
 		//process inputs
 		if (Input.GetKeyDown (KeyCode.LeftArrow)) {
 			if(!forGA) move (2, tBC);
@@ -299,30 +305,14 @@ public class GameManagerOld : MonoBehaviour{
 			//move all barkadas
 			foreach (Team i in GetComponents<Team>()) if(!(i.isPaused()) && i.timeToMove(Time.deltaTime)) move (0, i.getBarkada());
 		}
+		Debug.Log (UtilsKo.iterationCount + " hohoho");
 
-		//stranger behaviors
-		if (UtilsKo.mod ((int)strangerMoveTime, 2) == 1) {//meaning every 10 seconds gagalaw ang mga strangers
-			if (strangersThatMove.Count > 0) {
-				strangersThatMove [0].think ();
-				strangersThatMove [0].doIt ();
-			}
-			/*foreach (StrangerAI sa in strangersThatMove) {
-				sa.think ();
-				sa.doIt ();
-			}*/
-			strangerMoveTime = 0f;
-		} else
-			strangerMoveTime += Time.deltaTime;
-		if (UtilsKo.mod ((int)spawnTime, 5) == 4) {//meaning every 60 seconds magsisimulang gumalaw ang isang stranger
-			if (strangersThatMove.Count == 0 && strangersPool.Count > 0) {
-				int tabIndex = Random.Range (0, strangersPool.Count);
-				strangersPool [tabIndex].startMoving (map.getSpawnPoint ());
-				strangersThatMove.Add (strangersPool [tabIndex]);
-			}
-			//dito dapat code for stranger exiting
-			spawnTime = 0f;
-		} else
-			spawnTime += Time.deltaTime;
+		if (tempTimerKo > 1.00f) {
+			UpdateKo ();
+			tempTimerKo = 0.0f;
+		}else {
+			tempTimerKo += Time.deltaTime;
+		}
 
 		//update the HUDPanel
 		generalTimer += Time.deltaTime;
@@ -335,6 +325,31 @@ public class GameManagerOld : MonoBehaviour{
 			dm.setText (2, "Team 2: " + GetComponents<Team> () [1].getQueueSize ());
 		}
 
+		//update the map
+		if(!forGA) minimap.GetComponent<MiniMapManager>().updateMe(map.getEnvironmentDisplay());
+	}
+
+	void UpdateKo () {
+		//ai behaviors
+		if (ai != null) ai.UpdateKo();
+		if (ai2 != null) ai2.UpdateKo ();
+
+		//stranger behaviors
+		if (UtilsKo.mod (UtilsKo.iterationCount, 2) == 1) {//meaning every 10 seconds gagalaw ang mga strangers
+			if (strangersThatMove.Count > 0) {
+				strangersThatMove [0].think ();
+				strangersThatMove [0].doIt ();
+			}
+		}
+		if (UtilsKo.mod (UtilsKo.iterationCount, 5) == 4) {//meaning every 60 seconds magsisimulang gumalaw ang isang stranger
+			if (strangersThatMove.Count == 0 && strangersPool.Count > 0) {
+				int tabIndex = Random.Range (0, strangersPool.Count);
+				strangersPool [tabIndex].startMoving (map.getSpawnPoint ());
+				strangersThatMove.Add (strangersPool [tabIndex]);
+			}
+			//dito dapat code for stranger exiting
+		}
+
 		//check for round termination based on time
 		if (getTimeKo () == UtilsKo.roundLength) {
 			if (once) {//kailangan tong if block na to para mapigilan siyang magexecute ng mmarami sa second na "30"
@@ -345,8 +360,8 @@ public class GameManagerOld : MonoBehaviour{
 						//isplit mo yung barkada dahil babalik naman yung character sa team kapag na disable siya
 						ti.getBarkada ().splitMe (ti.getBarkada ().getHead ());//putulin sila based sa head nila
 						//at iset yung time nila as 30 secs if hindi siya na split
-						ti.setDeltaScore(-1f);
-						if(ti.getBarkada().getTime() == 0f)
+						ti.setDeltaScore (-1f);
+						if (ti.getBarkada ().getTime () == 0f)
 							ti.getBarkada ().saveTime (getTimeKo ());
 					}
 				}
@@ -363,8 +378,7 @@ public class GameManagerOld : MonoBehaviour{
 			once = true;
 		}
 
-		//update the map
-		if(!forGA) minimap.GetComponent<MiniMapManager>().updateMe(map.getEnvironmentDisplay());
+		UtilsKo.iterationCount++;
 	}
 	public static void makeAStranger(Tile tile1, Table tableKo){
 		GameObject temp = (GameObject)Instantiate (Resources.Load ("Prefabs/PlayerPrefab", typeof(GameObject)));
@@ -1077,6 +1091,7 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 	protected int currentAction, currentCorrectAction;
 	float timeCur;
 	bool initialized = false;
+	bool whatToDo = true;
 	protected Team toControl;
 	public virtual void init(GameManagerOld g, int teamNumToControl){
 		gm = g;
@@ -1092,18 +1107,14 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 	public virtual void learn(){
 		
 	}
-	void Update(){
+	public void UpdateKo(){
 		if (!toControl.isPaused () && initialized) {// no sense updating if the team is paused
-			if (timeCur > 1) {//temporary lang to, dapat laging kapag tapos na mag-animate na gumagalaw ang barkada saka siya ulit mag-iisip
-				doIt ();
-				timeCur = 0;
+			if (whatToDo) {
+				think (gm.getDisplayInformation ());
+				whatToDo = false;
 			} else {
-				if (timeCur + Time.deltaTime > 1) {
-					think (gm.getDisplayInformation ());
-				} else {
-					//learn ();
-				}
-				timeCur += Time.deltaTime;
+				doIt ();
+				whatToDo = true;
 			}
 		}
 	}
