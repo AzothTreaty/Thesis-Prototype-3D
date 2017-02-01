@@ -61,9 +61,9 @@ public class GameManagerOld : MonoBehaviour{
 		this.gameObject.AddComponent<Map> ();
 		map = this.gameObject.GetComponent<Map> ();
 		maps = new List<int[,]> ();
-		readMaps();
+		readMaps ();
 		//map.initialize (30, 20, 4);
-		map.initialize(maps[GetComponent<MenuManager>().getMapSelected()], forGA);
+		map.initialize (maps [GetComponent<MenuManager> ().getMapSelected ()], forGA);
 
 		//initialize team
 		numTeams = 2;
@@ -73,9 +73,9 @@ public class GameManagerOld : MonoBehaviour{
 
 		//initialize barkada, get spawnpoint from map and give it to barkada, initialize characters then give spawnpoint
 		for (int q = 0; q < numTeams; q++) {
-			Team temp = this.gameObject.GetComponents<Team>()[q];
-			temp.initialize (q, map.getSpawnPoint(), 0.25f, forGA);
-			startBarkada (temp.getBarkada());
+			Team temp = this.gameObject.GetComponents<Team> () [q];
+			temp.initialize (q, map.getSpawnPoint (), 0.25f, forGA);
+			startBarkada (temp.getBarkada ());
 		}
 		tBC = this.gameObject.GetComponents<Team> () [0].getBarkada ();
 	
@@ -107,18 +107,26 @@ public class GameManagerOld : MonoBehaviour{
 
 		this.gameObject.AddComponent<DQNAI> ();
 		ai = GetComponent<DQNAI> ();
-		ai.init (this, 1, map.getWidth(), map.getHeight());
+		ai.init (this, 1, map.getWidth (), map.getHeight ());
 		ai.setDS (GetComponent<MenuManager> ().getDifficulty ());
 
 		if (forGA) {
 			this.gameObject.AddComponent<DQNAI> ();
-			ai2 = GetComponents<DQNAI> ()[1];
-			ai2.init (this, 0, map.getWidth(), map.getHeight());
+			ai2 = GetComponents<DQNAI> () [1];
+			ai2.init (this, 0, map.getWidth (), map.getHeight ());
 			ai2.setDS (GetComponent<MenuManager> ().getPlayer1 ());
-			while (true) {
-				UpdateKo ();
-			}
+			/*
+			ThreadStart childref = new ThreadStart(runGAKoBaby);
+			Thread cT = new Thread(childref);
+			cT.Name = "GAThread";
+			cT.Start ();*/
 		}
+	}
+
+	public void runGAKoBaby(){
+		
+			UpdateKo ();
+
 	}
 
 	public int getWidth(){
