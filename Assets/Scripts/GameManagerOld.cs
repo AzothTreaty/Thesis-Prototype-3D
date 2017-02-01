@@ -1170,7 +1170,7 @@ public class DQNAI : AI{
 			//instantiate the weights array, convoluted neural network with an area of 9
 			//calculate for dimension of the weights array first
 			logs += UtilsKo.weightsFilePath + " is empty, so generating random weights now\n";
-			for (int qq = 0; qq < 3; qq++) {//to generate 3 different weights
+			for (int qq = 0; qq < 9; qq++) {//to generate 3 different weights
 				int curW = width - 2;
 				int curH = height - 2;
 				List<double[]> weights2 = new List<double[]> ();
