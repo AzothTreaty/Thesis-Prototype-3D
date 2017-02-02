@@ -383,6 +383,7 @@ public class MenuManager : MonoBehaviour {
 			generationCounter++;
 			Debug.Log ("The new genCounter is : " + generationCounter);
 			player1 = 1;
+			alphaCurFitIndex = 0;
 		}
 	}
 
