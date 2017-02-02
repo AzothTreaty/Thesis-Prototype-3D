@@ -3,18 +3,14 @@ using System.Collections;
 public class Character : MonoBehaviour {// also acts a node in a linked list
 	public Material[] mat;
 	Character next;
-	//static bool init = false;
 	static int counter = 0;
 	Tile tile, prevTile;
 	Barkada team;
 	int currentDir, teamID;//since di naman siya pwedeng magpalit ng team
-	//static Sprite[] sprites;
 	StrangerAI sAI;
 	bool aiEnabled;
 	float targetTime, curTime;
     Animator anim; 
-	// Use this for initialization
-
     void Awake ()
     {
         anim = GetComponent<Animator>();

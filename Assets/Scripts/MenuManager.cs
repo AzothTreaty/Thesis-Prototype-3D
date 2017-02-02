@@ -13,11 +13,15 @@ public class MenuManager : MonoBehaviour {
 	int player1, player2, mapSelected;
 
 	//for GA
-	public int generationCounter;
+	int generationCounter;
 	int popNum, alphaCurFitIndex, width, height;
 	List<Vector2> fitnessScores;
 	List<List<double[]>> populationWeights;
 	double mutationRate, crossoverRate;
+
+	public int getGenCounter(){
+		return mm.generationCounter;
+	}
 
 	void Start () {
 		timePassed = 0f;
@@ -28,6 +32,7 @@ public class MenuManager : MonoBehaviour {
 		crossoverRate = 0.05;
 		alphaCurFitIndex = 0;
 		startCounting = false;
+		generationCounter = 0;
 		GameObject baby = GameObject.Find ("DontKillMe");
 		if (baby != null) {
 			mm = baby.GetComponent<MenuManager>();
@@ -134,6 +139,20 @@ public class MenuManager : MonoBehaviour {
 		runGACore ();//weights are supposed to be saved in runGACore()
 		runGA = false;
 		loadMe (2);
+	}
+
+
+
+	public Vector2[] getFitScores(){
+		return mm.getFitScoresKo ();
+	}
+
+	Vector2[] getFitScoresKo(){
+		Vector2[] returnVal = new Vector2[fitnessScores.Count];
+		for (int q = 0; q < fitnessScores.Count; q++) {
+			returnVal [q] = fitnessScores [q];
+		}
+		return returnVal;
 	}
 
 	void startGA(){//player2 is the alpha while player 1 is the rest of the population
@@ -272,10 +291,14 @@ public class MenuManager : MonoBehaviour {
 	}
 
 	void runGACore(){
+		mm.runGACoreKo ();
+	}
+
+	void runGACoreKo(){
 		if (gaRunning() && player1 + 1 < popNum){
 			//rearrange the list of popweights
 			int currentIndex = player1;
-			while (currentIndex >= 1 && fitnessScores[currentIndex].x > fitnessScores[currentIndex - 1].x) {
+			while (currentIndex >= 1 && fitnessScores[currentIndex].x > fitnessScores[currentIndex - 1].x) {// > 2 para hindi ma-override yung nasa zero index
 				//switch
 				Vector2 temp = fitnessScores [currentIndex];
 				fitnessScores [currentIndex] = fitnessScores [currentIndex - 1];
@@ -287,7 +310,7 @@ public class MenuManager : MonoBehaviour {
 			}
 			player1++;
 		}
-		else if(gaRunning() && player1 >= popNum){
+		else if(gaRunning() && player1 + 1 >= popNum){
 			//the top 10 in fitness function is the basis for making the population
 			//rearrange the weights
 			int qHolder = 0;
@@ -358,6 +381,7 @@ public class MenuManager : MonoBehaviour {
 			fitnessScores.Clear();
 			fitnessScores.Add (new Vector2 (0, 0));
 			generationCounter++;
+			Debug.Log ("The new genCounter is : " + generationCounter);
 			player1 = 1;
 		}
 	}

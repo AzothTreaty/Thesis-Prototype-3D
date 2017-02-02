@@ -14,10 +14,19 @@ public class GAScreenHandler : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		gm.runGAKoBaby ();
-		string forText = "Running: " + gm.ai.getDS () + " vs " + gm.ai2.getDS () + "\n" + gm.getDisplayableTime () + "\nGeneration #" + mm.generationCounter;
+		string forText = "Running: " + gm.ai.getDS () + " vs " + gm.ai2.getDS () + "\n" + gm.getDisplayableTime () + "\nGeneration #" + mm.getGenCounter();
 		foreach (Team t in GetComponents<Team>()) {
 			forText += "\nTeam " + t.getID () + ": " + t.getScore ();
 		}
 		GameObject.Find ("StatusReport").GetComponent<Text> ().text = forText;
+
+		if(mm.gaRunning()){
+			Vector2[] scoresKo = mm.getFitScores ();
+			forText = "";
+			for (int q = 0; q < scoresKo.Length; q++) {
+				forText += scoresKo[q].y + ": " + scoresKo [q].x + "\n";
+			}
+			GameObject.Find ("Scores").GetComponent<Text> ().text = forText;
+		}
 	}
 }

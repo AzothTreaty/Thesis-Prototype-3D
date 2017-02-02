@@ -33,7 +33,7 @@ public class GameManagerOld : MonoBehaviour{
 	bool paused, once;
 	public DQNAI ai, ai2;
 	static GameManagerOld gm;
-	float spawnTime, strangerMoveTime, generalTimer, tempTimerKo;//generalTimer should not be reset, just modulo it if you want to know if 30 seconds have passed
+	float tempTimerKo;//generalTimer should not be reset, just modulo it if you want to know if 30 seconds have passed
 	int numTeams, numRounds;
 	GameObject roundMaster, minimap;
 	public void removeStranger(StrangerAI sai){
@@ -42,10 +42,8 @@ public class GameManagerOld : MonoBehaviour{
 		sai.disable ();
 	}
 	void Start(){
-		spawnTime = 0f;
 		tempTimerKo = 0;
-		strangerMoveTime = 0f;
-		generalTimer = 0f;
+		UtilsKo.iterationCount = 0;
 		paused = false;
 		once = true;
 		numRounds = 0;
@@ -124,9 +122,7 @@ public class GameManagerOld : MonoBehaviour{
 	}
 
 	public void runGAKoBaby(){
-		
 			UpdateKo ();
-
 	}
 
 	public int getWidth(){
@@ -164,11 +160,11 @@ public class GameManagerOld : MonoBehaviour{
 	}
 
 	public float getTimeKo(){//always from zero to 30
-		if ((int)generalTimer == 0) {
+		if (UtilsKo.iterationCount == 0) {
 			return 0f;
 		} else {
-			int babyKo = UtilsKo.mod ((int)generalTimer, UtilsKo.roundLength);
-			if (babyKo == 0f) {
+			int babyKo = UtilsKo.mod (UtilsKo.iterationCount, UtilsKo.roundLength);
+			if (babyKo == 0) {
 				return 30f;
 			} else {
 				return babyKo;
@@ -225,11 +221,11 @@ public class GameManagerOld : MonoBehaviour{
 			numPlayers += t.getSize ();
 		}
 		if (disabledTeams == GetComponents<Team> ().Length) {
-			//ayusin mo muna ang generalTimer
-			if((int)generalTimer == 0) 
-				generalTimer += 30f;
+			//ayusin mo muna ang iteration counter
+			if(UtilsKo.iterationCount == 0) 
+				UtilsKo.iterationCount += 30;
 			else 
-				generalTimer += (30f - UtilsKo.mod((int) generalTimer, UtilsKo.roundLength));
+				UtilsKo.iterationCount += (30 - UtilsKo.mod(UtilsKo.iterationCount, UtilsKo.roundLength));
 			finishRound ();
 		}
 		int numChairs = map.getNumChairs ();
@@ -297,47 +293,45 @@ public class GameManagerOld : MonoBehaviour{
 	}
 
 	public string getDisplayableTime(){
-		string returnVal = (int)generalTimer / 60 + ":" + UtilsKo.mod ((int)generalTimer, 60);
+		string returnVal = UtilsKo.iterationCount / 60 + ":" + UtilsKo.mod (UtilsKo.iterationCount, 60);
 		return returnVal;
 	}
 
 	void Update(){
-		//process inputs
-		if (Input.GetKeyDown (KeyCode.LeftArrow)) {
-			if(!forGA) move (2, tBC);
-			//Debug.Log ("Clicked left");
-		} else if (Input.GetKeyDown (KeyCode.RightArrow)) {
-			if(!forGA) move (1, tBC);
-			//Debug.Log("Right");
-		} else {//move everyone
-			//move all barkadas
-			foreach (Team i in GetComponents<Team>()) if(!(i.isPaused()) && i.timeToMove(Time.deltaTime)) move (0, i.getBarkada());
-		}
-		Debug.Log (UtilsKo.iterationCount + " hohoho");
+		if(!forGA){
+			//process inputs
+			if (Input.GetKeyDown (KeyCode.LeftArrow)) {
+				move (2, tBC);
+				//Debug.Log ("Clicked left");
+			} else if (Input.GetKeyDown (KeyCode.RightArrow)) {
+				move (1, tBC);
+				//Debug.Log("Right");
+			}
+			Debug.Log (UtilsKo.iterationCount + " hohoho");
 
-		if (tempTimerKo > 1.00f) {
-			UpdateKo ();
-			tempTimerKo = 0.0f;
-		}else {
-			tempTimerKo += Time.deltaTime;
-		}
+			//to regulate the speed of movement in the actual game
+			if (tempTimerKo > 1.00f) {
+				UpdateKo ();
+				tempTimerKo = 0.0f;
+			}else {
+				tempTimerKo += Time.deltaTime;
+			}
 
-		//update the HUDPanel
-		generalTimer += Time.deltaTime;
-		if (!forGA) {
+			//update the HUDPanel
 			if (dm == null) {
 				dm = GetComponent<HUDManager> ();
 			}
 			dm.setText (0, "Team 1: " + GetComponents<Team> () [0].getQueueSize ());
 			dm.setText (1, getDisplayableTime ());
 			dm.setText (2, "Team 2: " + GetComponents<Team> () [1].getQueueSize ());
-		}
 
-		//update the map
-		if(!forGA) minimap.GetComponent<MiniMapManager>().updateMe(map.getEnvironmentDisplay());
+			//update the map
+			minimap.GetComponent<MiniMapManager>().updateMe(map.getEnvironmentDisplay());
+		}
 	}
 
 	void UpdateKo () {
+		foreach (Team i in GetComponents<Team>()) if(!(i.isPaused())) move (0, i.getBarkada());
 		//ai behaviors
 		if (ai != null) ai.UpdateKo();
 		if (ai2 != null) ai2.UpdateKo ();
@@ -1117,13 +1111,8 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 	}
 	public void UpdateKo(){
 		if (!toControl.isPaused () && initialized) {// no sense updating if the team is paused
-			if (whatToDo) {
-				think (gm.getDisplayInformation ());
-				whatToDo = false;
-			} else {
-				doIt ();
-				whatToDo = true;
-			}
+			think (gm.getDisplayInformation ());
+			doIt ();
 		}
 	}
 	public virtual void doIt(){//interpret the chosen currentAction
@@ -1242,70 +1231,7 @@ public class DQNAI : AI{
 		}
 		return returnVal;
 	}
-	public override void learn (){//since score is only calculated at every end of round, learning actually starts at round 2
-		//get the team's deltascore and check if deltaScore is greater than 0
-		float deltaScore = toControl.getDeltaScore();
-		string logs = System.DateTime.UtcNow.ToString () + "Starting learning phase with deltaScore: " + deltaScore + "\n";
-		if (deltaScore != 0.0) {
-			toControl.addScore (0);//to offset the deltascore gotten by this AI
-			//Debug.Log ("I am supposed to start the learning phase with this score: " + deltaScore);
-			int counterNiGio = 0;
-			for (int q = 0; q < memoryPool.Count; q++) {
-				if (memoryPool [q].y == 0f) {
-					counterNiGio++;
-				}
-			}
-			float learningRate2 = (deltaScore / 5.0f)/(float)counterNiGio;//5 because based on computation, 6 is the theoretical maximum score that they can get
 
-			//change the learningRate of everyone whose learning rate is 0 in the memoryPool
-			for (int q = 0; q < memoryPool.Count; q++) {
-				if (memoryPool [q].y == 0f) {
-					memoryPool [q] = new Vector4 (memoryPool [q].x, learningRate2);
-					logs += "Modified index " + q + "'s learning in memoryPool to " + memoryPool [q].y + "\n";
-				}
-			}
-		} else {
-			//loop through the memories to learn from, remember to remove the memory after you are done with it
-			int counter = memoryPool.Count;
-			for (int q = 0; q < 10 && q < counter; q++) {//10 is the max number of batch updates per round
-				if(memoryPool[q].y == 0f) break;
-				logs += "Trying to learn from memory " + memoryPool[q].x + ", " + memoryPool[q].y + "\n";
-				//start the learning process
-				//calculate difference rate
-
-				//calculate for condensation rate between layers
-				double condRate = 1.0/(weights[dS].Count - 1);
-
-				//adjust categorical weights
-				for (int w = 0; w < weights [dS] [weights [dS].Count - 1].Length; w++) {
-					logs += weights[dS] [weights[dS].Count - 1] [w] + " to ";
-					weights[dS] [weights[dS].Count - 1] [w] += memoryPool [q].y * learningRate * condRate;
-					logs += weights[dS] [weights[dS].Count - 1] [w] + "\n";
-				}
-
-				for (int w = 0; w < weights[dS].Count - 1; w++) {
-					logs += "Changing layer " + w + "'s weights from \n";
-					for (int e = 0; e < weights[dS] [w].Length - 2; e++) {
-						logs += weights[dS] [w] [e] + " to ";
-						weights[dS] [w] [e] += memoryPool [q].y * learningRate * condRate;
-						logs += weights[dS] [w] [e] + "\n";
-					}
-				}
-			}
-
-			//remove the memories who are used to adjust the weights
-			for (int q = 0; q < 10 && q < counter; q++) {
-				if (memoryPool [0].y == 0f)
-					break;
-				else {
-					memoryPool.RemoveAt (0);
-				}
-			}
-			//finally record the recorded weights in the file "Weights"
-			saveTheWeights();
-		}
-		System.IO.File.AppendAllText (UtilsKo.logsFilePath, logs);
-	}
 	void saveTheWeights(){
 		string toBeWritten = "";
 		for (int e = 0; e < weights.Count; e++) {
@@ -1318,13 +1244,6 @@ public class DQNAI : AI{
 			toBeWritten += (e == weights.Count - 1 ? "" : "|");
 		}
 		System.IO.File.WriteAllText (UtilsKo.weightsFilePath + GetComponent<MenuManager>().getMapSelected() + ".txt", toBeWritten);
-	}
-	public double getSum(double[] baby){
-		double sum = baby [0];
-		for (int q = 1; q < baby.Length; q++) {
-			sum += baby [q];
-		}
-		return sum;
 	}
 	public override void doIt (){
 
