@@ -14,10 +14,14 @@ public class MenuManager : MonoBehaviour {
 
 	//for GA
 	int generationCounter;
-	int popNum, alphaCurFitIndex, width, height;
+	int popNum, alphaCurFitIndex, numLayers, protocolIndex;
+	int[] nodesPerLayer;
 	List<Vector2> fitnessScores;
 	List<List<double[]>> populationWeights;
-	double mutationRate, crossoverRate;
+	List<int[]> GAProtocols;
+	double mutationRate, crossoverRate, minNN, maxNN;
+	string[] tempStringArray, tempStringArray2;//for getting inputs
+	int[] tempIntArray;
 
 	public int getGenCounter(){
 		return mm.generationCounter;
@@ -28,8 +32,6 @@ public class MenuManager : MonoBehaviour {
 		runGA = false;
 		player1 = -1;
 		player2 = 0;
-		mutationRate = 0.005;
-		crossoverRate = 0.05;
 		alphaCurFitIndex = 0;
 		startCounting = false;
 		generationCounter = 0;
@@ -155,17 +157,48 @@ public class MenuManager : MonoBehaviour {
 		return returnVal;
 	}
 
+	/*
+	 * ============================================================================================================================================
+	 * TRY MO ICHECK KUNG GINAGAMIT DIN TONG STARTGA() PARA SA PAGRESUME NG GA, DAHIL HINDI SIYA DAPAT GINAGAMIT PARA DOON
+	 * ============================================================================================================================================
+	 */
+
 	void startGA(){//player2 is the alpha while player 1 is the rest of the population
 		//meaning start pa lang ng GA session
 		//Debug.Log("Hi");
+		string gaconfigurations = System.IO.File.ReadAllText (UtilsKo.GAConfigFilePath);
+		tempStringArray = gaconfigurations.Split (' ');
 		populationWeights = new List<List<double[]>>();
 		fitnessScores = new List<Vector2> ();
-		popNum = 20;
-		//get the width and height
-		TextAsset baby = Resources.Load<TextAsset> ("MapsInput");
-		string[] pinakaLabas = baby.text.Split ('|');
-		height = pinakaLabas [0].Split ('\n').Length;
-		width = pinakaLabas[0].Split('\n')[0].Split (' ').Length;
+		popNum = int.Parse(tempStringArray[0]);
+		mutationRate = double.Parse(tempStringArray[1]);
+		crossoverRate = double.Parse(tempStringArray[2]);
+		protocolIndex = 0;
+
+		tempStringArray = gaconfigurations.Split ('\n');
+		GAProtocols = new List<int[]> ();
+		for (int q = 1; q < tempStringArray.Length; q++) {//load the remaining protocols in order of starting-generationNumber, popNum, parentsKept, children made, and random samplings
+			tempStringArray2 = tempStringArray[q].Split(' ');
+			tempIntArray = new int[tempStringArray2.Length];
+			for (int qq = 0; q < tempStringArray2.Length; qq++) {
+				tempIntArray [qq] = int.Parse (tempStringArray2[qq]);
+			}
+
+			GAProtocols.Add (tempIntArray);
+		}
+
+		//------------------------------------------------------------------------------------Dito aayusin yung mga neural Network configurations, At magdagdag ka ng GA Protocols file
+		//GA config like population size, breeding protocol, mutation rates, crossover rates
+		//nodesPerLayer[0] == output layer
+		string neuralnetconfigs = System.IO.File.ReadAllText (UtilsKo.NNConfigFilePath);
+		tempStringArray = neuralnetconfigs.Split (' ');
+		minNN = double.Parse (tempStringArray [0]);
+		maxNN = double.Parse (tempStringArray [1]);
+		numLayers = int.Parse(tempStringArray[2]);
+		nodesPerLayer = new int[numLayers];
+		for (int q = 0; q < numLayers; q++) {
+			nodesPerLayer[q] = int.Parse(tempStringArray[q + 3]);
+		}
 
 		string weightBabyInputs = "";
 		try{
@@ -175,29 +208,9 @@ public class MenuManager : MonoBehaviour {
 		}
 		//generate the population and the random alpha
 		if (weightBabyInputs.Equals ("")) {
-			for (int qq = 0; qq < popNum; qq++) {//to generate 3 different weights
-				int curW = width - 2;
-				int curH = height - 2;
-				List<double[]> weights2 = new List<double[]> ();
-				while (curH > 2 && curW > 2) {//kasi sakto pa kapag == 3
-					double[] temp = new double[12];//9 for actual weights, 1 for bias weight, 2 for width height
-					for (int q = 0; q < 10; q++) {
-						//read the weights from file, but for now instantiate it as random first
-						temp [q] = Random.value;
-					}
-					curH -= 2;
-					curW -= 2;
-					temp [10] = curW;
-					temp [11] = curH;
-					weights2.Add (temp);
-				}
-				//instantiate the weights for the end categories
-				double[] temp2 = new double[curH * curW];
-				for (int w = 0; w < temp2.Length; w++) {
-					temp2 [w] = Random.value;
-				}
-				weights2.Add (temp2);
-				populationWeights.Add (weights2);
+			for (int i = 0; i < popNum; i++) {//for every member of the population
+				List<double[]> tempWeights = UtilsKo.generateRandomNNWeights(nodesPerLayer, minNN, maxNN);
+				populationWeights.Add (tempWeights);
 			}
 			//Debug.Log (populationWeights.Count);
 			writeTheWeights (true);
@@ -311,37 +324,60 @@ public class MenuManager : MonoBehaviour {
 			player1++;
 		}
 		else if(gaRunning() && player1 + 1 >= popNum){
-			//the top 10 in fitness function is the basis for making the population
-			//rearrange the weights
+			//=================================================================================================================================
+			//check the GAProtocols list for any protocol that needs to be used
+			//tempIntArray in this function will contain the necessary parameters for the GA protocols to be observed
+			tempIntArray = GAProtocols[protocolIndex];
+			for (int q = 0; q < GAProtocols.Count; q++) {
+				if (GAProtocols [q] [0] > generationCounter) {
+					protocolIndex = q - 1;
+					break;
+				}
+			}
+			popNum = tempIntArray [0];
+			int numParents = tempIntArray [1];
+			int numChildren = tempIntArray [2];
+			int randomPeople = tempIntArray [3];
+
+
+			//gets the number of parents required or at least the number of parents with scores and adds them to the end of the populationWeights
 			int qHolder = 0;
-			for (int q = 0; q < 10 && q < fitnessScores.Count; q++) {
-				populationWeights.Add (populationWeights[(int)fitnessScores[q].y]);
+			for (int q = 0; q < numParents && q < fitnessScores.Count; q++) {
+				//populationWeights.Add (populationWeights[(int)fitnessScores[q].y]);
 				qHolder = q;
 			}
-			Debug.Log ("Popweights count: " + populationWeights.Count);
-			populationWeights.RemoveRange (0, qHolder + 1);
-			populationWeights.RemoveRange (0, 10);//clear the remainder of the babies
-			Debug.Log ("Popweights count is: " + populationWeights.Count);
-			//run crossover algorithm and mutation rates
-			for (int q = 0; q < popNum - 10 - (popNum / 10); q++) {//10% of population is going to be random
+			Debug.Log ("Popweights count before removal: " + populationWeights.Count);
+			//clears the rest of the list of the unneeded parents
+			populationWeights.RemoveRange (qHolder, popNum - (qHolder + 1));//qHolder + 1 because it denotes the actual count of the 'parents' that have scores
+			Debug.Log ("Popweights count after removal: " + populationWeights.Count);
+			
+
+			//generate children from existing parents and run crossover and mutation algorithms
+			for (int q = 0; q < numChildren; q++) {
 				//get the randomized parents
-				int p1 = Random.Range(1, 10);
-				int p2 = Random.Range (1, 10);
+				//Random.Range is [minimum inclusive, maximum exclusive], so i used qHolder + 1
+				int p1 = Random.Range(0, qHolder + 1);
+				int p2 = Random.Range (0, qHolder + 1);
 				while (p1 == p2) {
-					p2 = Random.Range (1, 10);
+					p2 = Random.Range (0, qHolder + 1);
 				}
-				//ignore last two values in every array because these are used to denote the 
-				//do crossover on populationweights[p1] and populationweights[p2]
+
 				bool crossNow = false;
 				List<double[]> child = new List<double[]> ();
 				for (int w = 0; w < populationWeights [p1].Count; w++) {
 					double[] tempoLangTo = new double[populationWeights[p1][w].Length];
 					for (int e = 0; e < populationWeights [p1] [w].Length - 2; e++) {
+						//check if crossover or mutation
 						if (Random.value < crossoverRate)
 							crossNow = !crossNow;//basically flip crossNow
 						bool willFlip = Random.value < mutationRate;
-						if(crossNow && !willFlip) tempoLangTo[e] = (double)Mathf.Abs((float)populationWeights[p1][w][e] - (float)populationWeights[p2][w][e]);//distance
-						else tempoLangTo[e] = (populationWeights[p1][w][e] + populationWeights[p2][w][e]) / 2.0;//average
+
+						//crossover algorithm == switch genes
+						if (crossNow) tempoLangTo[e] = populationWeights[p2][w][e];
+						else tempoLangTo[e] = populationWeights[p1][w][e];
+
+						//mutation algorithm == multiply current gene by a certain value
+						if(willFlip) tempoLangTo[e] = tempoLangTo[e] * Random.value;
 					}
 					child.Add(tempoLangTo);
 				}
@@ -351,28 +387,8 @@ public class MenuManager : MonoBehaviour {
 			Debug.Log ("After adding babies, the population weights count is: " + populationWeights.Count);
 
 			//make the random babies
-			for (int q = 0; q < (popNum / 10); q++) {
-				int curW = width - 2;
-				int curH = height - 2;
-				List<double[]> weights2 = new List<double[]> ();
-				while (curH > 2 && curW > 2) {//kasi sakto pa kapag == 3
-					double[] temp = new double[12];//9 for actual weights, 1 for bias weight, 2 for width height
-					for (int w = 0; w < 10; w++) {
-						//read the weights from file, but for now instantiate it as random first
-						temp [w] = Random.value;
-					}
-					curH -= 2;
-					curW -= 2;
-					temp [10] = curW;
-					temp [11] = curH;
-					weights2.Add (temp);
-				}
-				//instantiate the weights for the end categories
-				double[] temp2 = new double[curH * curW];
-				for (int w = 0; w < temp2.Length; w++) {
-					temp2 [w] = Random.value;
-				}
-				weights2.Add (temp2);
+			for (int q = 0; q < randomPeople; q++) {
+				List<double[]> weights2 = UtilsKo.generateRandomNNWeights (nodesPerLayer, minNN, maxNN);
 				populationWeights.Add (weights2);
 			}
 			Debug.Log ("After adding randoms, the population weights count is: " + populationWeights.Count);
@@ -381,7 +397,6 @@ public class MenuManager : MonoBehaviour {
 			fitnessScores.Clear();
 			fitnessScores.Add (new Vector2 (0, 0));
 			generationCounter++;
-			Debug.Log ("The new genCounter is : " + generationCounter);
 			player1 = 1;
 			alphaCurFitIndex = 0;
 		}

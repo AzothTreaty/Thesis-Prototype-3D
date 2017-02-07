@@ -9,6 +9,8 @@ public static class UtilsKo{
 	public static string weightsFilePath = "Weights";
 	public static string logsFilePath = "Logs.txt";
 	public static string directionalMapFilePath = "DirectionalMap";
+	public static string NNConfigFilePath = "NeuralNetworkConfigurations.txt";
+	public static string GAConfigFilePath = "GAConfigurations.txt";
 	public static int tileH = 10;
 	public static int tileW = 10;
 	public static int maxRounds = 10;
@@ -16,6 +18,25 @@ public static class UtilsKo{
 	public static int iterationCount = 0;
 	public static int mod(int a, int b){
 		return (a % b + b) % b;
+	}
+	//generate's values given a min and max and the list 
+	//returnVal has length of nodesPerLayer.length - 1
+	//assumption is that nodesPerLayer[0] is the inputLayer
+	//returnVal[0] are the weights between the input layer and the first hidden layer
+	//returnVal[0][0] is the weight between the inputlayer's first node and the first hidden layer's first node
+	//returnVal[0][1] is the weight between the inputlayer's first node and the first hidden layer's second node
+	//etc
+	public static List<double[]> generateRandomNNWeights(int[] nodesPerLayer, double min, double max){
+		List<double[]> returnVal = new List<double[]> ();
+		for (int q = 0; q < nodesPerLayer.Length - 1; q++) {
+			int lengthKo = nodesPerLayer [q] * nodesPerLayer [q + 1];
+			double[] temp = new double[lengthKo];
+			for (int w = 0; w < lengthKo; w++) {
+				temp [w] = Random.Range((float)min, (float)max);
+			}
+			returnVal.Add (temp);
+		}
+		return returnVal;
 	}
 }
 
@@ -1137,6 +1158,13 @@ public class DQNAI : AI{
 	public void setDS(int y){
 		dS = y;
 	}
+
+	/*
+	 *==================================================================================================================================================== 
+	 * Ito naman ang iadjust mo boi
+	 * 
+	 *====================================================================================================================================================
+	 */
 
 	public void init (GameManagerOld g, int teamNumToControl, int width, int height){//kapag nag-error pagpalitin mo na lang yung height and width sa parameters
 		base.init (g, teamNumToControl);
