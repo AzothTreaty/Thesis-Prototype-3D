@@ -8,7 +8,6 @@ public class Character : MonoBehaviour {// also acts a node in a linked list
 	Barkada team;
 	int currentDir, teamID;//since di naman siya pwedeng magpalit ng team
 	StrangerAI sAI;
-	bool aiEnabled;
 	float targetTime, curTime;
     Animator anim; 
     void Awake ()
@@ -26,7 +25,6 @@ public class Character : MonoBehaviour {// also acts a node in a linked list
 
 	public void startProperly(){//just to instantiate the character
 		//spriteIndex = 0;
-		aiEnabled = false;
 		//chSCounter = 1;//used if you want a delay in animation, represents number of moves needed before animation
 		//chSIndex = 0;
 
@@ -212,9 +210,6 @@ public class Character : MonoBehaviour {// also acts a node in a linked list
 		targetTime = 2f;
 		curTime = 0f;
 		return sAI;
-	}
-	public void startAI(){
-		aiEnabled = true;
 	}
 	public void setTile(Tile tilee){
 		tile = tilee;

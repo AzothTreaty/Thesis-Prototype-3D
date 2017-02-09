@@ -213,25 +213,9 @@ public class MenuManager : MonoBehaviour {
 				populationWeights.Add (tempWeights);
 			}
 			//Debug.Log (populationWeights.Count);
-			writeTheWeights (true);
+			UtilsKo.writeNNWeights(populationWeights);
 		} else {
-			string[] baby1 = weightBabyInputs.Split('|');
-			//logs += "Detected " + baby1.Length + " sets of weights\n";
-			for (int q = 0; q < baby1.Length; q++) {
-				List<double[]> weights2 = new List<double[]> ();
-				string[] baby2 = baby1 [q].Split ('\n');
-				//logs += "Detected " + baby2.Length + " layers of weights\n";
-				for (int w = 0; w < baby2.Length - 1; w++) {
-					string[] baby3 = baby2 [w].Split (' ');
-					double[] newInputs = new double[baby3.Length];
-					for (int e = 0; e < baby3.Length; e++) {
-						//System.IO.File.AppendAllText(logsFilePath, logs + "+======================");
-						newInputs [e] = double.Parse (baby3[e]);
-					}
-					weights2.Add (newInputs);
-				}
-				populationWeights.Add (weights2);
-			}
+			populationWeights = UtilsKo.readNNWeights (weightBabyInputs);
 		}
 
 		runGA = true;
@@ -240,21 +224,11 @@ public class MenuManager : MonoBehaviour {
 		selectedDifficulty (0, 3);
 	}
 
-	void writeTheWeights(bool saveItIn1){
-		string toBeWritten = "";
-		for (int e = 0; e < populationWeights.Count; e++) {
-			for (int q = 0; q < populationWeights [e].Count; q++) {
-				for (int w = 0; w < populationWeights [e] [q].Length; w++) {
-					toBeWritten += populationWeights [e] [q] [w] + (w == (populationWeights [e] [q].Length - 1) ? "" : " ");
-				}
-				toBeWritten += "\n";
-			}
-			toBeWritten += (e == populationWeights.Count - 1 ? "" : "|");
-		}
-		System.IO.File.WriteAllText (UtilsKo.weightsFilePath + getMapSelected() + ".txt", toBeWritten);
-
-		if(saveItIn1) System.IO.File.WriteAllText (UtilsKo.weightsFilePath + getMapSelected() + "FirstGen" + ".txt", toBeWritten);
-	}
+	/*
+	 * Try to consolidate this function and GameManagerOld's DQNAI saveTheWeight to the UtilsKo class
+	 * Also try to consolidate the reading from and writing to of the 
+	 * 
+	 */ 
 
 	public bool gaRunning(){
 		return mm == null ? false : mm.runGA;
@@ -392,7 +366,8 @@ public class MenuManager : MonoBehaviour {
 				populationWeights.Add (weights2);
 			}
 			Debug.Log ("After adding randoms, the population weights count is: " + populationWeights.Count);
-			writeTheWeights (false);//to save the edited version of the weights after a generation
+			UtilsKo.writeNNWeights (populationWeights);//to save the edited version of the weights after a generation
+
 			//clear the fitnessScore array just to be sure
 			fitnessScores.Clear();
 			fitnessScores.Add (new Vector2 (0, 0));

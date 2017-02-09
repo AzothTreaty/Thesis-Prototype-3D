@@ -13,12 +13,55 @@ public static class UtilsKo{
 	public static string GAConfigFilePath = "GAConfigurations.txt";
 	public static int tileH = 10;
 	public static int tileW = 10;
+	public static int numDiffs = 9;
 	public static int maxRounds = 10;
 	public static int roundLength = 30;
 	public static int iterationCount = 0;
 	public static int mod(int a, int b){
 		return (a % b + b) % b;
 	}
+	//automatic max of 1 and min of 0
+	public static double logFunc(double value){
+		double returnVal = 1 / (1 + Mathf.Exp(-1.0f * (float)value));
+		return returnVal;
+	}
+
+
+	public static List<List<double[]>> readNNWeights(string inputString){
+		List<List<double[]>> returnVal = new List<List<double[]>>();
+		string[] baby1 = inputString.Split('|');
+		for (int q = 0; q < baby1.Length; q++) {
+			List<double[]> weights2 = new List<double[]> ();
+			string[] baby2 = baby1 [q].Split ('\n');
+			for (int w = 0; w < baby2.Length - 1; w++) {
+				string[] baby3 = baby2 [w].Split (' ');
+				double[] newInputs = new double[baby3.Length];
+				for (int e = 0; e < baby3.Length; e++) {
+					newInputs [e] = double.Parse (baby3[e]);
+				}
+				weights2.Add (newInputs);
+			}
+			returnVal.Add (weights2);
+		}
+		return returnVal;
+	}
+
+
+	public static void writeNNWeights(List<List<double[]>> weightsKo){
+		string toBeWritten = "";
+		for (int e = 0; e < weightsKo.Count; e++) {
+			for (int q = 0; q < weightsKo [e].Count; q++) {
+				for (int w = 0; w < weightsKo [e] [q].Length; w++) {
+					toBeWritten += weightsKo [e] [q] [w] + (w == (weightsKo [e] [q].Length - 1) ? "" : " ");
+				}
+				toBeWritten += "\n";
+			}
+			toBeWritten += (e == weightsKo.Count - 1 ? "" : "|");
+		}
+		System.IO.File.WriteAllText (UtilsKo.weightsFilePath + ".txt", toBeWritten);
+	}
+
+
 	//generate's values given a min and max and the list 
 	//returnVal has length of nodesPerLayer.length - 1
 	//assumption is that nodesPerLayer[0] is the inputLayer
@@ -126,13 +169,13 @@ public class GameManagerOld : MonoBehaviour{
 
 		this.gameObject.AddComponent<DQNAI> ();
 		ai = GetComponent<DQNAI> ();
-		ai.init (this, 1, map.getWidth (), map.getHeight ());
+		ai.init (this, 1);
 		ai.setDS (GetComponent<MenuManager> ().getDifficulty ());
 
 		if (forGA) {
 			this.gameObject.AddComponent<DQNAI> ();
 			ai2 = GetComponents<DQNAI> () [1];
-			ai2.init (this, 0, map.getWidth (), map.getHeight ());
+			ai2.init (this, 0);
 			ai2.setDS (GetComponent<MenuManager> ().getPlayer1 ());
 			/*
 			ThreadStart childref = new ThreadStart(runGAKoBaby);
@@ -172,12 +215,29 @@ public class GameManagerOld : MonoBehaviour{
 		}
 	}
 
-	public int [,] getDisplayInformation(){
-		return map.getEnvironmentDisplay ();
-	}
-
-	public int[,,] getEnvironment(int teamID){
-		return map.getFeatureVectors (teamID);
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	//Add the direction of the team itself
+	//just returns an array of values, the neural network should distribute these values into its input layer
+	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	public int[] getDisplayInformation(int teamID){
+		int[,] tempBaby = map.getEnvironmentDisplay ();
+		int[] tempBaby2 = new int[(tempBaby.GetLength(0) * tempBaby.GetLength(1)) + 1];
+		int qq = 0;
+		for (int q = 0; q < tempBaby.GetLength (0); q++) {
+			for (int w = 0; w < tempBaby.GetLength (1); w++) {
+				tempBaby2 [qq] = tempBaby [q, w];
+			}
+		}
+		int directionOfTeam = 0;
+		foreach(Team t in GetComponents<Team>()){
+			if(t.getID() == teamID){
+				directionOfTeam = t.getBarkada ().getHead ().getHeading ();
+				Debug.Log ("Team #" + teamID + " is heading " + directionOfTeam);
+				break;
+			}
+		}
+		tempBaby2 [tempBaby.GetLength (0) * tempBaby.GetLength (1)] = directionOfTeam;
+		return tempBaby2;
 	}
 
 	public float getTimeKo(){//always from zero to 30
@@ -1111,20 +1171,16 @@ public class Table{
 
 public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method para makapag-isip ng maayos ang AI
 	protected GameManagerOld gm;
-	protected int currentAction, currentCorrectAction;
-	float timeCur;
+	protected int currentAction;
 	bool initialized = false;
-	bool whatToDo = true;
 	protected Team toControl;
 	public virtual void init(GameManagerOld g, int teamNumToControl){
 		gm = g;
 		initialized = true;
-		timeCur = 0;
 		currentAction = 0;//idle
-		currentCorrectAction = -1;//meaning wala pa siyang alam na currently correct action
 		toControl = gm.gameObject.GetComponents<Team> () [teamNumToControl];
 	}
-	public virtual void think(int[,] information){//choose a currentAction
+	public virtual void think(int[] information){//choose a currentAction
 		currentAction = Random.Range (0, 3);
 	}
 	public virtual void learn(){
@@ -1132,7 +1188,7 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 	}
 	public void UpdateKo(){
 		if (!toControl.isPaused () && initialized) {// no sense updating if the team is paused
-			think (gm.getDisplayInformation ());
+			think (gm.getDisplayInformation (toControl.getID()));
 			doIt ();
 		}
 	}
@@ -1144,21 +1200,21 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 public class DQNAI : AI{
 	//currentAction acts as currentStates
 	int dS;//difficulty Setting
-	double biasConstant, learningRate;//actually di ako sure kung kailangan biasConstant e
-	List<double> qtable;
-	List<List<double[]>> weights;
-	List<string> states;
-	List<Vector2> memoryPool;//state index, learning rate, di na kailangan ang mga outputs kasi ang gusto ko lang ay i enhance siya by giving positive rewards
-	//kung baga binibigyan ko lang siya ng pat on the back na yung magnitude ay nakadepende sa lakas ng sapak
+	double result, weightedBias;//actually di ako sure kung kailangan biasConstant e
+	List<List<double[]>> weights;//outermost list is the list of all available networks, inner list is the list of layers in a network, array is the list of weights for that corresponding layer
+	int[] numNodesInLayer;
+	int numLayers;
 
+	//List<double> qtable;
+	//List<string> states;
+	//List<Vector2> memoryPool;//state index, learning rate, di na kailangan ang mga outputs kasi ang gusto ko lang ay i enhance siya by giving positive rewards
+	//kung baga binibigyan ko lang siya ng pat on the back na yung magnitude ay nakadepende sa lakas ng sapak
 	public int getDS(){
 		return dS;
 	}
-
 	public void setDS(int y){
 		dS = y;
 	}
-
 	/*
 	 *==================================================================================================================================================== 
 	 * Ito naman ang iadjust mo boi
@@ -1166,13 +1222,20 @@ public class DQNAI : AI{
 	 *====================================================================================================================================================
 	 */
 
-	public void init (GameManagerOld g, int teamNumToControl, int width, int height){//kapag nag-error pagpalitin mo na lang yung height and width sa parameters
+	public override void init (GameManagerOld g, int teamNumToControl){
 		base.init (g, teamNumToControl);
-		biasConstant = 1;
-		learningRate = 0.3;
-		states = new List<string> ();
-		qtable = new List<double>();
-		memoryPool = new List<Vector2> ();
+		result = -1.0;
+
+		//read configurations from file
+		string[] tempStrings = System.IO.File.ReadAllText (UtilsKo.NNConfigFilePath).Split(' ');
+		double minNN = double.Parse (tempStrings [0]);
+		double maxNN = double.Parse (tempStrings [1]);
+		numLayers = int.Parse (tempStrings [2]);
+		numNodesInLayer = new int[numLayers];
+		for (int q = 0; q < numLayers; q++) {
+			numNodesInLayer[q] = int.Parse(tempStrings[q + 3]);
+		}
+		weightedBias = double.Parse(tempStrings[numLayers + 3]) * double.Parse(tempStrings[numLayers + 4]);
 		weights = new List<List<double[]>> ();
 
 		string weightBabyInputs = "";
@@ -1183,68 +1246,20 @@ public class DQNAI : AI{
 		}
 		string logs = System.DateTime.UtcNow.ToString() + "Starting AI\n";
 
+
 		if (weightBabyInputs.Equals ("")) {//if the weights file doesn't exist
 			//instantiate the weights array, convoluted neural network with an area of 9
 			//calculate for dimension of the weights array first
 			logs += UtilsKo.weightsFilePath + " is empty, so generating random weights now\n";
-			for (int qq = 0; qq < 9; qq++) {//to generate 3 different weights
-				int curW = width - 2;
-				int curH = height - 2;
-				List<double[]> weights2 = new List<double[]> ();
-				while (curH > 2 && curW > 2) {//kasi sakto pa kapag == 3
-					double[] temp = new double[12];//9 for actual weights, 1 for bias weight, 2 for width height
-					logs += "Layer #" + weights2.Count + " weights: ";
-					for (int q = 0; q < 10; q++) {
-						//read the weights from file, but for now instantiate it as random first
-						temp [q] = Random.value;
-						logs += temp [q] + " ";
-					}
-					logs += "\n";
-					curH -= 2;
-					curW -= 2;
-					temp [10] = curW;
-					temp [11] = curH;
-					weights2.Add (temp);
-				}
-				//instantiate the weights for the end categories
-				logs += "Categorical Layer #" + qq + " weights: ";
-				double[] temp2 = new double[curH * curW];
-				for (int w = 0; w < temp2.Length; w++) {
-					temp2 [w] = Random.value;
-					logs += temp2 [w] + " ";
-				}
-				logs += "\n";
-				weights2.Add (temp2);
-
+			for (int qq = 0; qq < UtilsKo.numDiffs; qq++) {//to generate 3 different weights
+				List<double[]> weights2 = UtilsKo.generateRandomNNWeights(numNodesInLayer, minNN, maxNN);
 				weights.Add (weights2);
 			}
-            saveTheWeights();
+			UtilsKo.writeNNWeights (weights);
 		} 
 		else {//read it from file
 			logs += "Reading weights from " + logs + UtilsKo.weightsFilePath + "\n";
-			string[] baby1 = weightBabyInputs.Split('|');
-			//logs += "Detected " + baby1.Length + " sets of weights\n";
-			for (int q = 0; q < baby1.Length; q++) {
-				List<double[]> weights2 = new List<double[]> ();
-				string[] baby2 = baby1 [q].Split ('\n');
-				//logs += "Detected " + baby2.Length + " layers of weights\n";
-				for (int w = 0; w < baby2.Length - 1; w++) {
-					logs += "Layer " + w + "'s weights: ";
-					string[] baby3 = baby2 [w].Split (' ');
-					double[] newInputs = new double[baby3.Length];
-					for (int e = 0; e < baby3.Length; e++) {
-						logs += baby3[e] + " ";
-						//System.IO.File.AppendAllText(logsFilePath, logs + "+======================");
-						newInputs [e] = double.Parse (baby3[e]);
-					}
-					logs += "\n";
-					weights2.Add (newInputs);
-				}
-				weights.Add (weights2);
-			}
-
-			//create backup of the weights
-			System.IO.File.WriteAllText ("WeightsBackup.txt", weightBabyInputs);
+			weights = UtilsKo.readNNWeights (weightBabyInputs);
 		}
 			
 		//record it all in logs file
@@ -1260,111 +1275,76 @@ public class DQNAI : AI{
 		return returnVal;
 	}
 
-	void saveTheWeights(){
-		string toBeWritten = "";
-		for (int e = 0; e < weights.Count; e++) {
-			for (int q = 0; q < weights [e].Count; q++) {
-				for (int w = 0; w < weights [e] [q].Length; w++) {
-					toBeWritten += weights [e] [q] [w] + (w == (weights [e] [q].Length - 1) ? "" : " ");
-				}
-				toBeWritten += "\n";
-			}
-			toBeWritten += (e == weights.Count - 1 ? "" : "|");
-		}
-		System.IO.File.WriteAllText (UtilsKo.weightsFilePath + GetComponent<MenuManager>().getMapSelected() + ".txt", toBeWritten);
-	}
+
+	//dito ko ilalagay yung final calculation
+	//currentAction will contain the value given by the neural network
+	//nasa doIt() na kung paano niya yun iinterpret
 	public override void doIt (){
 
-		//since technically nasa learning phase pa lang siya, bagay pa to, pero kapag nasa production phase na, kunin mo na lang yung max distribution tapos yun ang gamitin mo
-		//calculate for distributions
-		int babyMoTo = currentAction;
-
-		//logistic function
-		float b = (float) qtable[currentAction];
-		float a = (float)(1.0 / (1.0 + Mathf.Exp(-1.0f * b)));
-
-
-		Debug.Log ("Hi, activated function is " + b);
-		Debug.Log ("It also has " + a);
+		result = UtilsKo.logFunc (result);
+		Debug.Log ("Hi, activated function is " + result);
 
 		//Debug.Log("Sum is " + sum
-		if (a > 1)
-			Debug.Log ("What the fuck? check the distributions calculation in doIt()");
-		//revert the currentAction variable to its original usage
+		if (result < 0)
+			Debug.Log ("What the fuck? check the neural network's final calculated number and doIt()'s logistic function");
 
-		if (a <= 0.51f)
+
+		if (result <= 0.51f)
 			currentAction = 0;
-		else if (0.51f < a && a < 0.63f)
+		else if (0.51f < result && result < 0.63f)
 			currentAction = 1;
 		else
 			currentAction = 2;
-		memoryPool.Add (new Vector2 (babyMoTo, 0));
-		//Debug.Log ("I chose to move " + currentAction);
-		//currentAction = 0;
 		base.doIt ();
 	}
-	public override void think(int [,] info){//don't use the feature verctors yet, take note that it follows x, y convention
-		//currentAction = 0;
 
-		//transform info into a double [,]
-		double[,] currentMap = new double[info.GetLength (0), info.GetLength (1)];
-		for (int q = 0; q < currentMap.GetLength (0); q++) {
-			for (int w = 0; w < currentMap.GetLength (1); w++) {
-				if (info [q, w] == -2)
-					currentMap [q, w] = 10;
-				currentMap [q, w] = (double)info [q, w];
+
+	public override void think(int [] info){//don't use the feature verctors yet, take note that it follows x, y convention
+		//transform the int[] input to a double[] general results
+		//current consolidation method is to distribute the input alternately to each input node in the neural network
+		//info[0] is placed in input node 0
+		//info[1] is placed in input node 1
+		//info[2] is placed in input node 2
+		//and so on and so forth
+		//the values placed in each input node is added and averaged
+		double[] genResults = new double[numNodesInLayer[0]];
+		for(int q = 0; q < numNodesInLayer[0]; q++){
+			int w = q;
+			int counter = 0;
+			double tempHolder = 0;
+			while(w < info.Length){
+				counter++;
+				if (info [w] == -2)
+					tempHolder += 10.0;
+				else 
+					tempHolder += (double) info [w];
+				w += numNodesInLayer[0];
 			}
+			genResults [q] = tempHolder / (double)counter;
 		}
-		//start feeding data to the convoluted network
-		Debug.Log("dS is " + dS);
-		for (int q = 0; q < weights[dS].Count - 1; q++) {
-			double[,] constructingMap = new double[(int)weights[dS] [q] [10], (int)weights[dS] [q] [11]];
-			//Debug.Log (currentMap.GetLength (0) + ", " + currentMap.GetLength (1));
-			for (int w = 0; w < weights[dS] [q] [10]; w++) {//width
-				for (int h = 0; h < weights[dS] [q] [11]; h++) {
-					//w,h represents index of top left field, the above configuration moves up down then to the right
-					int indexNgWeight = 0;
-					double currentResult = 0;
-					for (int g = h; g < h + 3; g++) {//this configuration moves from left to right then up down
-						for (int i = w; i < w + 3; i++) {
-							currentResult += currentMap [i, g] * weights[dS] [q] [indexNgWeight++];
-						}
-					}
-					currentResult += weights[dS] [q] [indexNgWeight++] * biasConstant;//para sa bias constant
-					currentResult = currentResult/(double)indexNgWeight;
-					constructingMap [w, h] = currentResult;
+
+		//The neural network
+		for(int q = 0; q < numLayers - 1; q++){
+			double[] tempStorage = new double[numNodesInLayer[q + 1]];
+			for(int w = 0; w < numNodesInLayer[q + 1]; w++){
+
+				//uses weighted sum for the consolidation algorithm
+				double valueKo = 0;
+				for(int e = 0; e < numNodesInLayer[q]; e++){
+					valueKo += genResults [e] * weights [dS] [q] [(e * numNodesInLayer [q + 1]) + w];
 				}
+				valueKo += weightedBias;
+
+				valueKo = UtilsKo.logFunc (valueKo);//prevents the numbers from blowing out of proportion
+				tempStorage[w] = valueKo;//store it as the next layer's input
 			}
-			currentMap = constructingMap;
-		}
-		//Debug.Log (currentMap.GetLength (0) + ", " + currentMap.GetLength (1));
-		//hopefully by this part, currentMap contains the prefinal form of the convoluted network
-		//calculate for final distributions
-		int indexNgWeightKo = 0;
-		double currentDistribution = 0;
-		//Debug.Log (currentMap.GetLength (0) + ", " + currentMap.GetLength (1));
-		for (int h = 0; h < currentMap.GetLength (1); h++) {
-			for (int w = 0; w < currentMap.GetLength (0); w++) {
-				currentDistribution += currentMap [w, h] * weights[dS] [weights[dS].Count - 1] [indexNgWeightKo++];
+
+			//ready the genResults for the next Layer
+			for(int w = 0; w < numNodesInLayer[q + 1]; w++){
+				genResults[w] = tempStorage[w];
 			}
 		}
 
-
-		//store the states and their distributions
-		currentAction = states.Count;
-		string stateRep = getStateRep (info);
-		bool nakapasok = false;
-		for (int q = 0; q < states.Count; q++) {
-			if (states [q].Equals (stateRep)) {
-				qtable [q] = currentDistribution;
-				nakapasok = true;
-				currentAction = q;
-				break;
-			}
-		}
-		if (!nakapasok) {
-			states.Add (stateRep);
-			qtable.Add (currentDistribution);
-		}
+		result = genResults [0];
 	}
 }
