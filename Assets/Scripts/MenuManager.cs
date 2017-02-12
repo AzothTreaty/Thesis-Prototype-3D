@@ -14,7 +14,7 @@ public class MenuManager : MonoBehaviour {
 
 	//for GA
 	int generationCounter;
-	int popNum, alphaCurFitIndex, numLayers, protocolIndex;
+	int popNum, numLayers, protocolIndex;
 	int[] nodesPerLayer;
 	List<Vector2> fitnessScores;
 	List<List<double[]>> populationWeights;
@@ -32,7 +32,6 @@ public class MenuManager : MonoBehaviour {
 		runGA = false;
 		player1 = -1;
 		player2 = 0;
-		alphaCurFitIndex = 0;
 		startCounting = false;
 		generationCounter = 0;
 		GameObject baby = GameObject.Find ("DontKillMe");
@@ -180,7 +179,7 @@ public class MenuManager : MonoBehaviour {
 		for (int q = 1; q < tempStringArray.Length; q++) {//load the remaining protocols in order of starting-generationNumber, popNum, parentsKept, children made, and random samplings
 			tempStringArray2 = tempStringArray[q].Split(' ');
 			tempIntArray = new int[tempStringArray2.Length];
-			for (int qq = 0; q < tempStringArray2.Length; qq++) {
+			for (int qq = 0; qq < tempStringArray2.Length; qq++) {
 				tempIntArray [qq] = int.Parse (tempStringArray2[qq]);
 			}
 
@@ -219,8 +218,7 @@ public class MenuManager : MonoBehaviour {
 		}
 
 		runGA = true;
-		player1 = 1;
-		fitnessScores.Add (new Vector2 (0, 0));
+		player1 = 0;
 		selectedDifficulty (0, 3);
 	}
 
@@ -239,7 +237,7 @@ public class MenuManager : MonoBehaviour {
 	}
 
 	public int getPlayer1(){
-		return mm == null ? 1 : mm.player1;
+		return mm == null ? 0 : mm.player1;
 	}
 
 	void selectedDifficulty(int diff, int levelToLoad){
@@ -255,8 +253,6 @@ public class MenuManager : MonoBehaviour {
 	void totoongInputTeamData(Team[] teams){
 		if (runGA) {
 			textForGameOver = "Pitting " + player1 + " in generation " + generationCounter + "\n";
-			//Debug.Log (alphaCurFitIndex);
-			fitnessScores [alphaCurFitIndex] = new Vector2(((fitnessScores [alphaCurFitIndex].x * player1) + teams [0].getScore ()) / (float)player1, 0);
 			fitnessScores.Add(new Vector2(teams [1].getScore(), player1));
 		}
 		Debug.Log ("SUsubukan ko nang bigyan ng information si menumanager");
@@ -290,9 +286,6 @@ public class MenuManager : MonoBehaviour {
 				Vector2 temp = fitnessScores [currentIndex];
 				fitnessScores [currentIndex] = fitnessScores [currentIndex - 1];
 				fitnessScores [currentIndex - 1] = temp;
-				if (currentIndex - 1 == alphaCurFitIndex)//kasi nga nagswitch sila
-					alphaCurFitIndex = currentIndex;
-
 				currentIndex--;
 			}
 			player1++;
@@ -370,10 +363,8 @@ public class MenuManager : MonoBehaviour {
 
 			//clear the fitnessScore array just to be sure
 			fitnessScores.Clear();
-			fitnessScores.Add (new Vector2 (0, 0));
 			generationCounter++;
-			player1 = 1;
-			alphaCurFitIndex = 0;
+			player1 = 0;
 		}
 	}
 

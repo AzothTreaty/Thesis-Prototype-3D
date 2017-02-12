@@ -95,7 +95,8 @@ public class GameManagerOld : MonoBehaviour{
 	HUDManager dm;
 	RoundManager rm;
 	bool paused, once;
-	public DQNAI ai, ai2;
+	public DQNAI ai;
+	public SPAI ai2;
 	static GameManagerOld gm;
 	float tempTimerKo;//generalTimer should not be reset, just modulo it if you want to know if 30 seconds have passed
 	int numTeams, numRounds;
@@ -167,26 +168,27 @@ public class GameManagerOld : MonoBehaviour{
 			minimap.GetComponent<MiniMapManager> ().initMe (map);
 		}
 
+	
 		this.gameObject.AddComponent<DQNAI> ();
 		ai = GetComponent<DQNAI> ();
 		ai.init (this, 1);
 		ai.setDS (GetComponent<MenuManager> ().getDifficulty ());
 
 		if (forGA) {
-			this.gameObject.AddComponent<DQNAI> ();
-			ai2 = GetComponents<DQNAI> () [1];
+			this.gameObject.AddComponent<SPAI> ();
+			ai2 = GetComponent<SPAI> ();
 			ai2.init (this, 0);
-			ai2.setDS (GetComponent<MenuManager> ().getPlayer1 ());
-			/*
-			ThreadStart childref = new ThreadStart(runGAKoBaby);
-			Thread cT = new Thread(childref);
-			cT.Name = "GAThread";
-			cT.Start ();*/
+			//para lang to sa DQNAI na ginagamit ko dati
+			//ai2.setDS (GetComponent<MenuManager> ().getPlayer1 ());
 		}
 	}
 
 	public void runGAKoBaby(){
 			UpdateKo ();
+	}
+
+	public Tile getTile(int x, int y){
+		return map.getTile (x, y);
 	}
 
 	public int getWidth(){
@@ -215,29 +217,12 @@ public class GameManagerOld : MonoBehaviour{
 		}
 	}
 
-	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	//Add the direction of the team itself
-	//just returns an array of values, the neural network should distribute these values into its input layer
-	//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	public int[] getDisplayInformation(int teamID){
-		int[,] tempBaby = map.getEnvironmentDisplay ();
-		int[] tempBaby2 = new int[(tempBaby.GetLength(0) * tempBaby.GetLength(1)) + 1];
-		int qq = 0;
-		for (int q = 0; q < tempBaby.GetLength (0); q++) {
-			for (int w = 0; w < tempBaby.GetLength (1); w++) {
-				tempBaby2 [qq] = tempBaby [q, w];
-			}
-		}
-		int directionOfTeam = 0;
-		foreach(Team t in GetComponents<Team>()){
-			if(t.getID() == teamID){
-				directionOfTeam = t.getBarkada ().getHead ().getHeading ();
-				Debug.Log ("Team #" + teamID + " is heading " + directionOfTeam);
-				break;
-			}
-		}
-		tempBaby2 [tempBaby.GetLength (0) * tempBaby.GetLength (1)] = directionOfTeam;
-		return tempBaby2;
+	public Map getMap(){
+		return map;
+	}
+
+	public int[,] getDisplayInformation(int teamID){
+		return map.getEnvironmentDisplay ();
 	}
 
 	public float getTimeKo(){//always from zero to 30
@@ -388,7 +373,7 @@ public class GameManagerOld : MonoBehaviour{
 				move (1, tBC);
 				//Debug.Log("Right");
 			}
-			Debug.Log (UtilsKo.iterationCount + " hohoho");
+			//Debug.Log (UtilsKo.iterationCount + " hohoho");
 
 			//to regulate the speed of movement in the actual game
 			if (tempTimerKo > 1.00f) {
@@ -494,7 +479,8 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 	}
 	public Tile getProjectedNextTile(int source, int destination){
 		//Debug.Log ("trying to find way from " + source + " to " + destination);
-		int tileIndex = dM [source, destination];
+		int tileIndex = dM [source, destination]; 
+		//Debug.Log (tiles.GetLength (0) + "; " + tiles.GetLength (1) + "====" + tileIndex + "-" + (tileIndex / xQuant) + "--------:" + tileIndex);
 		//Debug.Log ("go to tileIndex " + tileIndex);
 		return tiles [tileIndex % xQuant, (int)(tileIndex / xQuant)].GetComponent<Tile>();
 	}
@@ -1006,6 +992,10 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 		initializeDirectionalMap();
 	}
 
+	public Tile getTile(int x, int y){
+		return tiles [y, x].GetComponent<Tile> ();
+	}
+
 	public Tile getSpawnPoint(){
 		int baby = Random.Range (0, spawnPoints.Length);
 		while (true) {
@@ -1037,6 +1027,9 @@ public class Table{
 	}
 	public void addASeat(){
 		availSeats++;
+	}
+	public GameObject[] getEntries(){
+		return entryPoints;
 	}
 	public Table(GameObject[] nb, int xS, int yS){//ayusin ang pointVal flags ng tiles
 		tableTiles = nb;
@@ -1180,7 +1173,7 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 		currentAction = 0;//idle
 		toControl = gm.gameObject.GetComponents<Team> () [teamNumToControl];
 	}
-	public virtual void think(int[] information){//choose a currentAction
+	public virtual void think(){//choose a currentAction
 		currentAction = Random.Range (0, 3);
 	}
 	public virtual void learn(){
@@ -1188,7 +1181,7 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 	}
 	public void UpdateKo(){
 		if (!toControl.isPaused () && initialized) {// no sense updating if the team is paused
-			think (gm.getDisplayInformation (toControl.getID()));
+			think ();
 			doIt ();
 		}
 	}
@@ -1197,11 +1190,63 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 	}
 }
 
+//the shortest path standard AI
+public class SPAI : AI{
+	List<Tile> entryPoints;
+	public override void init (GameManagerOld g, int teamNumToControl){
+		base.init (g, teamNumToControl);
+		entryPoints = new List<Tile> ();
+		foreach (Table t in g.getMap().getTables()) {
+			foreach (GameObject gg in t.getEntries()) {
+				entryPoints.Add (gg.GetComponent<Tile>());
+			}
+		}
+	}
+
+	public override void think(){
+		//get currentPosition of team's head
+		//get destination from map
+
+		Tile currentPosition = toControl.getBarkada().getHead().getCurrentTile();
+		int qq = 0;
+		double currentDist = double.PositiveInfinity;
+		for (int q = 0; q < entryPoints.Count; q++) {
+			if (entryPoints [q].getPointVal () == 3) {
+				float a = Mathf.Abs (currentPosition.getMapIndex().x - entryPoints[q].getMapIndex().x);
+				float b = Mathf.Abs (currentPosition.getMapIndex().y - entryPoints[q].getMapIndex().y);
+				double tempDist = (double)Mathf.Sqrt ((a * a) + (b * b));
+				if (tempDist < currentDist) {
+					currentDist = tempDist;
+					qq = q;
+				}
+			}
+		}
+		Tile destination = entryPoints[qq];
+
+		//Debug.Log ("Naghanap for " + counterKo);
+		//Debug.Log ("Dest: " + destination.getMapIndex ().x + ", " + destination.getMapIndex ().y);
+		//Debug.Log ("Source: " + currentPosition.getMapIndex ().x + ", " + currentPosition.getMapIndex ().y);
+		currentAction = gm.getDirections(currentPosition, destination);
+		//getDirections will return the normal coordinate position 0, 1, 2, 3
+		//we need to transpose it to the left right straight command
+		int heading = toControl.getBarkada().getHead().getHeading();
+		if (UtilsKo.mod (heading + 1, 4) == currentAction) {//if turning left
+			currentAction = 2;
+		} else if (UtilsKo.mod (heading - 1, 4) == currentAction) {
+			currentAction = 1;
+		} else if (UtilsKo.mod (heading - 2, 4) == currentAction) {//meaning pinapaturn around ka niya, which is impossible so just pick either left or right
+			currentAction = Random.value > 0.5f ? 1 : 2;
+		} else {
+			currentAction = 0;
+		}
+	}
+}
+
 public class DQNAI : AI{
 	//currentAction acts as currentStates
 	int dS;//difficulty Setting
 	double result, weightedBias;//actually di ako sure kung kailangan biasConstant e
-	List<List<double[]>> weights;//outermost list is the list of all available networks, inner list is the list of layers in a network, array is the list of weights for that corresponding layer
+	List<List<double[]>> weights;//outermost		 list is the list of all available networks, inner list is the list of layers in a network, array is the list of weights for that corresponding layer
 	int[] numNodesInLayer;
 	int numLayers;
 
@@ -1299,29 +1344,47 @@ public class DQNAI : AI{
 	}
 
 
-	public override void think(int [] info){//don't use the feature verctors yet, take note that it follows x, y convention
+	public override void think(){
+		//don't use the feature vectors yet, take note that it follows x, y convention
+		int [,] info = gm.getDisplayInformation (toControl.getID());
+
 		//transform the int[] input to a double[] general results
-		//current consolidation method is to distribute the input alternately to each input node in the neural network
-		//info[0] is placed in input node 0
-		//info[1] is placed in input node 1
-		//info[2] is placed in input node 2
-		//and so on and so forth
+		//current consolidation method is to get succeeding inputs to one input node
 		//the values placed in each input node is added and averaged
+		//last node is reserved for the rest of the inputs and for the heading/direction of the team
 		double[] genResults = new double[numNodesInLayer[0]];
-		for(int q = 0; q < numNodesInLayer[0]; q++){
-			int w = q;
-			int counter = 0;
+		int numInputsPerNode = ((info.GetLength (0) * info.GetLength (1)) / (numNodesInLayer [0] - 1));
+		int iX = 0;
+		int iY = 0;
+		//Debug.Log ("hello po " + numInputsPerNode);
+		for(int q = 0; q < numNodesInLayer[0] - 1; q++){
 			double tempHolder = 0;
-			while(w < info.Length){
-				counter++;
-				if (info [w] == -2)
-					tempHolder += 10.0;
-				else 
-					tempHolder += (double) info [w];
-				w += numNodesInLayer[0];
+			for (int w = 0; w < numInputsPerNode; w++) {
+				if (iX >= info.GetLength (1) - 1) {
+					iY += 1;
+					iX = 0;
+				} 
+				else iX += 1;
+
+				tempHolder += (double)info [iY, iX];
 			}
-			genResults [q] = tempHolder / (double)counter;
+			genResults [q] = tempHolder / (double)numInputsPerNode;
 		}
+
+		//process the input for the last input node
+		double tempHold = 0;
+		int counter = 0;
+		while (iY < info.GetLength(0) - 1) {
+			if (iX >= info.GetLength (1) - 1) {
+				iY += 1;
+				iX = 0;
+			} 
+			else iX += 1;
+			tempHold += (double)info [iY, iX];
+			counter++;
+		}
+		tempHold += (double) (toControl.getBarkada ().getHead ().getHeading ());
+		genResults [numNodesInLayer [0] - 1] = tempHold / (double)(counter + 1);
 
 		//The neural network
 		for(int q = 0; q < numLayers - 1; q++){
