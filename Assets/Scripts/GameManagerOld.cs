@@ -403,11 +403,9 @@ public class GameManagerOld : MonoBehaviour{
 		if (ai2 != null) ai2.UpdateKo ();
 
 		//stranger behaviors
-		if (UtilsKo.mod (UtilsKo.iterationCount, 2) == 1) {//meaning every 10 seconds gagalaw ang mga strangers
-			if (strangersThatMove.Count > 0) {
-				strangersThatMove [0].think ();
-				strangersThatMove [0].doIt ();
-			}
+		if (strangersThatMove.Count > 0) {
+			strangersThatMove [0].think ();
+			strangersThatMove [0].doIt ();
 		}
 		if (UtilsKo.mod (UtilsKo.iterationCount, 5) == 4) {//meaning every 60 seconds magsisimulang gumalaw ang isang stranger
 			if (strangersThatMove.Count == 0 && strangersPool.Count > 0) {
