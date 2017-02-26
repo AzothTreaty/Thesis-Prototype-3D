@@ -172,7 +172,7 @@ public class GameManagerOld : MonoBehaviour{
 		this.gameObject.AddComponent<DQNAI> ();
 		ai = GetComponent<DQNAI> ();
 		ai.init (this, 1);
-		ai.setDS (GetComponent<MenuManager> ().getDifficulty ());
+		ai.setDS (GetComponent<MenuManager> ().getPlayer1 ());
 
 		if (forGA) {
 			this.gameObject.AddComponent<SPAI> ();
@@ -292,10 +292,11 @@ public class GameManagerOld : MonoBehaviour{
 				UtilsKo.iterationCount += 30;
 			else 
 				UtilsKo.iterationCount += (30 - UtilsKo.mod(UtilsKo.iterationCount, UtilsKo.roundLength));
+			Debug.Log ("Diyos KO PO");
 			finishRound ();
 		}
 		int numChairs = map.getNumChairs ();
-		if ((numPlayers > numChairs && numChairs == 0) || (numPlayers == 0 && numChairs > 0)) {
+		if (!returnVal && ((numPlayers > numChairs && numChairs == 0) || (numPlayers == 0 && numChairs > 0))) {
 			Debug.Log ("Game stopped because numPlayers is greater than remaining chairs or all the chairs have been taken but there are still some players");
 			gameOver ();
 			returnVal = true;
@@ -304,7 +305,6 @@ public class GameManagerOld : MonoBehaviour{
 		if (returnVal) {
 			finishRound ();
 		}
-
 		return returnVal;
 	}
 
@@ -397,10 +397,11 @@ public class GameManagerOld : MonoBehaviour{
 	}
 
 	void UpdateKo () {
-		foreach (Team i in GetComponents<Team>()) if(!(i.isPaused())) move (0, i.getBarkada());
+		//Debug.Log (UtilsKo.iterationCount);
 		//ai behaviors
 		if (ai != null) ai.UpdateKo();
 		if (ai2 != null) ai2.UpdateKo ();
+		foreach (Team i in GetComponents<Team>()) if(!(i.isPaused())) move (0, i.getBarkada());
 
 		//stranger behaviors
 		if (strangersThatMove.Count > 0) {
@@ -424,6 +425,7 @@ public class GameManagerOld : MonoBehaviour{
 				foreach (Team ti in GetComponents<Team>()) {
 					if (!ti.getBarkada ().isDisabled ()) {
 						//isplit mo yung barkada dahil babalik naman yung character sa team kapag na disable siya
+						Debug.Log("naubusan ng oras mehn");
 						ti.getBarkada ().splitMe (ti.getBarkada ().getHead ());//putulin sila based sa head nila
 						//at iset yung time nila as 30 secs if hindi siya na split
 						ti.setDeltaScore (-1f);
@@ -1098,7 +1100,12 @@ public class Table{
 		//Debug.Log ("I am " + xS + " " + yS);
 	}
 	public int getNumChairs(){//gets available number of seats
-		return availSeats;
+		int returnVal = 0;
+		for (int q = 0; q < chairs.Length; q++) {
+			if (!(chairs [q].GetComponent<Tile> ().isOccupied ()))
+				returnVal += 1;
+		}
+		return returnVal;
 	}
 	public void resetNgKonti(){
 		for (int q = 0; q < entryPoints.Length; q++) {
@@ -1191,6 +1198,8 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 //the shortest path standard AI
 public class SPAI : AI{
 	List<Tile> entryPoints;
+	Tile prevPosition;
+	int counter;
 	public override void init (GameManagerOld g, int teamNumToControl){
 		base.init (g, teamNumToControl);
 		entryPoints = new List<Tile> ();
@@ -1199,13 +1208,21 @@ public class SPAI : AI{
 				entryPoints.Add (gg.GetComponent<Tile>());
 			}
 		}
+		counter = 0;
 	}
 
 	public override void think(){
+		Tile currentPosition = toControl.getBarkada().getHead().getCurrentTile();
+		if (prevPosition != null && currentPosition == prevPosition) {
+			if (counter == 2) {
+				currentAction = Random.value > 0.5f ? 1 : 2;
+				counter = 0;
+				return;
+			} else
+				counter++;
+		}
 		//get currentPosition of team's head
 		//get destination from map
-
-		Tile currentPosition = toControl.getBarkada().getHead().getCurrentTile();
 		int qq = 0;
 		double currentDist = double.PositiveInfinity;
 		for (int q = 0; q < entryPoints.Count; q++) {
@@ -1237,6 +1254,7 @@ public class SPAI : AI{
 		} else {
 			currentAction = 0;
 		}
+		prevPosition = currentPosition;
 	}
 }
 
@@ -1283,7 +1301,7 @@ public class DQNAI : AI{
 
 		string weightBabyInputs = "";
 		try{
-			weightBabyInputs = System.IO.File.ReadAllText (UtilsKo.weightsFilePath + GetComponent<MenuManager>().getMapSelected() + ".txt");
+			weightBabyInputs = System.IO.File.ReadAllText (UtilsKo.weightsFilePath + ".txt");
 		}catch{
 			Debug.Log ("Making the weights now");
 		}

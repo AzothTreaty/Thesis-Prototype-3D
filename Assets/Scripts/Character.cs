@@ -107,7 +107,7 @@ public class Character : MonoBehaviour {// also acts a node in a linked list
 					if (newTile.getLaman ().getTeamID () == teamID || newTile.getLaman ().name.Contains ("MainGuy")) {
 						success = false;
 					} else {
-						//Debug.Log ("Tumama po kami sa kalaban");
+						Debug.Log ("Tumama po kami sa kalaban");
 						newTile.getLaman ().getBarkada ().splitMe (newTile.getLaman ());
 					}
 				} 
@@ -192,18 +192,6 @@ public class Character : MonoBehaviour {// also acts a node in a linked list
 	public int getHeading(){
 		return currentDir;
 	}
-	/*
-	void OnTriggerEnter2D (Collider2D collision)
-	{
-		GameObject obj = collision.gameObject;
-		Tile collided = obj.GetComponent<Tile> ();
-		if (collided != null) {
-			if (collided.getPointVal () == 3) {
-				Debug.Log ("Icollided");
-				collided.getTable ().seatCharacters (this);
-			}
-		}
-	}*/
 	public StrangerAI setUpStranger(GameManagerOld gm, Table t){
 		startProperly ();//dapat dito dahil pinapalitan ng constructor ng strangerai ang name ng character
 		sAI = new StrangerAI (gm, this, t);
@@ -223,7 +211,7 @@ public class Character : MonoBehaviour {// also acts a node in a linked list
 public class Team : MonoBehaviour{
 	Character head, tail;//since it is a linked list
 	Barkada barkada;
-	int size, ID, splits, seatedChars, acuSplits;
+	int ID, splits, seatedChars, acuSplits;
 	float currentAcumulativeScore, curTime, maxTime, curMaxTime, deltaScore;
 	Tile spawnPoint;
 	bool paused;
@@ -268,6 +256,15 @@ public class Team : MonoBehaviour{
 	public int getSeated(){
 		return seatedChars;
 	}
+	public int getQueueSize(){
+		int returnVal = 0;
+		Character una = head;
+		while (una != null) {
+			una = una.getNext ();
+			returnVal += 1;
+		}
+		return returnVal;
+	}
 	public int getAcuSeated(){
 		return maxChars - getSize ();
 	}
@@ -282,7 +279,6 @@ public class Team : MonoBehaviour{
 		currentAcumulativeScore += score;
 	}
 	public void initialize(int id, Tile ti, float mT, bool forGA){
-		size = 0;
 		curTime = 0;
 		maxTime = mT;
 		curMaxTime = maxTime;
@@ -340,9 +336,8 @@ public class Team : MonoBehaviour{
 			tail.setNext (c.GetComponent<Character> ());
 			tail = c.GetComponent<Character> ();
 		}
-		size++;
 		seatedChars--;
-		System.IO.File.AppendAllText (UtilsKo.gameLogsFilePath, "Appended a character in Team #" + getID () + " giving it a total of " + size + " characters\n");
+		//System.IO.File.AppendAllText (UtilsKo.gameLogsFilePath, "Appended a character in Team #" + getID () + " giving it a total of " +  + " characters\n");
 	}
 	public void showCharacters(){
 		Character tempoKo = head;
@@ -379,35 +374,34 @@ public class Team : MonoBehaviour{
 		returnVal = toBeReturned;
 		while (returnVal != null) {
 			seatedChars++;
-			size--;
 			returnVal = returnVal.getNext ();
 		}
 		//Debug.Log ("I hope you can handle " + seatedChars + " characters");
 		return toBeReturned;
 	}
 	public int getSize(){
-		return size + barkada.getSize();
-	}
-	public int getQueueSize(){
-		return size;
+		return getQueueSize() + barkada.getSize();
 	}
 }
 
 public class Barkada{
 	Character head, current;
 	Team team;
-	int size;
 	float time;
 	public Barkada(Team t){
 		team = t;
-		size = 0;
-
 	}
 	public bool isDisabled(){
 		return head == null;
 	}
 	public int getSize(){
-		return size;
+		int returnVal = 0;
+		Character temp = head;
+		while (temp != null) {
+			temp = temp.getNext ();
+			returnVal += 1;
+		}
+		return returnVal;
 	}
 	public Team getTeam(){
 		return team;
@@ -434,7 +428,6 @@ public class Barkada{
 		for (int q = 0; q < index; q++) {
 			babies [q].disableMe ();
 		}
-		size -= index;
 	}
 	public void saveTime(float y){
 		time = y;
@@ -448,12 +441,8 @@ public class Barkada{
 			head.getObject ().name = "MainGuy" + team.getID ();
 			//palitan head ng kulay
 			h.changeColor (0);
-		}
-		Character current = head;
-		size = 0;
-		while (current != null) {
-			size++;
-			current = current.getNext ();
+		} else {
+			Debug.Log("I set the characters of the barkada to null");
 		}
 	}
 	public Character getHead(){
@@ -538,7 +527,6 @@ public class StrangerAI{
 	public void think(){
 		//get current position then feed it to the map to get next destination
 		currentAction = gm.getDirections (currentPosition, destination);//Random.Range (0, 4);
-
 		//now normalize currentAction
 		//get heading of toMove
 		/*int currentDir = toMove.getHeading();
@@ -558,7 +546,6 @@ public class StrangerAI{
 		//Debug.Log (toMove == null ? "toMove" : gm == null ? "gm" : "wtf?");
 		//Debug.Log("Doing action " + currentAction);
 		//Debug.Log ("I am in " + currentPosition.getMapIndex ().x + ", " + currentPosition.getMapIndex ().y);
-	
 		//interpret the currentAction
 		Tile tile = gm.getNewTile(currentAction, toMove.getCurrentTile());
 		//check if in destination already

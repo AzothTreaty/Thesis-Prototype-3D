@@ -255,10 +255,10 @@ public class MenuManager : MonoBehaviour {
 			textForGameOver = "Pitting " + player1 + " in generation " + generationCounter + "\n";
 			fitnessScores.Add(new Vector2(teams [1].getScore(), player1));
 		}
-		Debug.Log ("SUsubukan ko nang bigyan ng information si menumanager");
+		//Debug.Log ("SUsubukan ko nang bigyan ng information si menumanager");
 		foreach (Team t in teams) {
 			textForGameOver += "Team " + t.getID () + " has seated " + t.getAcuSeated () + " and got " + t.getAcumulatedSplits () + " splits thereby gaining " + t.getScore () + " points\n";
-			Debug.Log ("Napalitan ko na");
+			//Debug.Log ("Napalitan ko na");
 		}
 		if (teams.Length == 0)
 			Debug.Log ("Bakit walang laman tong si kuya?");
@@ -294,17 +294,17 @@ public class MenuManager : MonoBehaviour {
 			//=================================================================================================================================
 			//check the GAProtocols list for any protocol that needs to be used
 			//tempIntArray in this function will contain the necessary parameters for the GA protocols to be observed
-			tempIntArray = GAProtocols[protocolIndex];
 			for (int q = 0; q < GAProtocols.Count; q++) {
 				if (GAProtocols [q] [0] > generationCounter) {
 					protocolIndex = q - 1;
 					break;
 				}
 			}
-			popNum = tempIntArray [0];
-			int numParents = tempIntArray [1];
-			int numChildren = tempIntArray [2];
-			int randomPeople = tempIntArray [3];
+			tempIntArray = GAProtocols[protocolIndex];
+			popNum = tempIntArray [1];
+			int numParents = tempIntArray [2];
+			int numChildren = tempIntArray [3];
+			int randomPeople = tempIntArray [4];
 
 
 			//gets the number of parents required or at least the number of parents with scores and adds them to the end of the populationWeights
@@ -313,10 +313,11 @@ public class MenuManager : MonoBehaviour {
 				//populationWeights.Add (populationWeights[(int)fitnessScores[q].y]);
 				qHolder = q;
 			}
-			Debug.Log ("Popweights count before removal: " + populationWeights.Count);
+			//Debug.Log ("Popweights count before removal: " + populationWeights.Count);
+			//Debug.Log ("PopNum is " + popNum);
 			//clears the rest of the list of the unneeded parents
-			populationWeights.RemoveRange (qHolder, popNum - (qHolder + 1));//qHolder + 1 because it denotes the actual count of the 'parents' that have scores
-			Debug.Log ("Popweights count after removal: " + populationWeights.Count);
+			populationWeights.RemoveRange (qHolder, popNum - (qHolder + 1));
+			//Debug.Log ("Popweights count after removal: " + populationWeights.Count);
 			
 
 			//generate children from existing parents and run crossover and mutation algorithms
