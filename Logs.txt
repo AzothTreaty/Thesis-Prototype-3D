@@ -1783,3 +1783,48 @@ Weights
 02/28/2017 07:29:17Starting AI
 Reading weights from 02/28/2017 07:29:17Starting AI
 Weights
+3/1/2017 1:16:01 AMStarting AI
+Reading weights from 3/1/2017 1:16:01 AMStarting AI
+Weights
+3/1/2017 1:17:15 AMStarting AI
+Reading weights from 3/1/2017 1:17:15 AMStarting AI
+Weights
+3/1/2017 1:20:19 AMStarting AI
+Reading weights from 3/1/2017 1:20:19 AMStarting AI
+Weights
+3/1/2017 1:21:17 AMStarting AI
+Reading weights from 3/1/2017 1:21:17 AMStarting AI
+Weights
+3/1/2017 1:22:09 AMStarting AI
+Reading weights from 3/1/2017 1:22:09 AMStarting AI
+Weights
+3/1/2017 1:22:13 AMStarting AI
+Reading weights from 3/1/2017 1:22:13 AMStarting AI
+Weights
+3/1/2017 1:23:16 AMStarting AI
+Reading weights from 3/1/2017 1:23:16 AMStarting AI
+Weights
+3/1/2017 1:24:23 AMStarting AI
+Reading weights from 3/1/2017 1:24:23 AMStarting AI
+Weights
+3/1/2017 1:26:07 AMStarting AI
+Reading weights from 3/1/2017 1:26:07 AMStarting AI
+Weights
+3/1/2017 1:27:54 AMStarting AI
+Reading weights from 3/1/2017 1:27:54 AMStarting AI
+Weights
+3/1/2017 1:28:26 AMStarting AI
+Reading weights from 3/1/2017 1:28:26 AMStarting AI
+Weights
+3/1/2017 1:29:32 AMStarting AI
+Reading weights from 3/1/2017 1:29:32 AMStarting AI
+Weights
+3/1/2017 1:42:23 AMStarting AI
+Reading weights from 3/1/2017 1:42:23 AMStarting AI
+Weights
+3/1/2017 1:48:40 AMStarting AI
+Reading weights from 3/1/2017 1:48:40 AMStarting AI
+Weights
+3/1/2017 1:51:58 AMStarting AI
+Reading weights from 3/1/2017 1:51:58 AMStarting AI
+Weights

@@ -181,6 +181,7 @@ public class GameManagerOld : MonoBehaviour{
 			//para lang to sa DQNAI na ginagamit ko dati
 			//ai2.setDS (GetComponent<MenuManager> ().getPlayer1 ());
 		}
+		Debug.Log ("Current Difficulty is " + ai.getDS ());
 	}
 
 	public void runGAKoBaby(){
@@ -263,7 +264,7 @@ public class GameManagerOld : MonoBehaviour{
 
 	public void gameOver(){
 		//put data into menu manager
-		GetComponent<MenuManager>().inputTeamData(GetComponents<Team>());
+		GetComponent<MenuManager>().inputTeamData(GetComponents<Team>(), forGA ? -1 : ai.getDS());
 		GetComponent<MenuManager> ().loadLevel(1);
 	}
 

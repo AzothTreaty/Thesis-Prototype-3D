@@ -17,6 +17,8 @@ public class MenuManager : MonoBehaviour {
 	int popNum, numLayers, protocolIndex;
 	int[] nodesPerLayer;
 	List<Vector2> fitnessScores;
+	Vector2[] diffScores;//index is the diffArea, x is the subDiff, y is the currentAverage score
+	int diffInterval;
 	List<List<double[]>> populationWeights;
 	List<int[]> GAProtocols;
 	double mutationRate, crossoverRate, minNN, maxNN;
@@ -34,6 +36,11 @@ public class MenuManager : MonoBehaviour {
 		player2 = 0;
 		startCounting = false;
 		generationCounter = 0;
+		diffScores = new Vector2[3];
+		diffScores [0] = new Vector2 (0, 0);
+		diffScores [1] = new Vector2 (1, 0);
+		diffScores [2] = new Vector2 (2, 0);
+		diffInterval = 3;
 		GameObject baby = GameObject.Find ("DontKillMe");
 		if (baby != null) {
 			mm = baby.GetComponent<MenuManager>();
@@ -65,47 +72,17 @@ public class MenuManager : MonoBehaviour {
 		//for scene gameStart
 		baby = GameObject.Find("Diff0");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(8, 0));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.dynamicDiff(2));
 		}
 
 		baby = GameObject.Find("Diff1");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(7, 0));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.dynamicDiff(1));
 		}
 
 		baby = GameObject.Find("Diff2");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(6, 0));
-		}
-
-		baby = GameObject.Find("Diff3");
-		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(5, 0));
-		}
-
-		baby = GameObject.Find("Diff4");
-		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(4, 0));
-		}
-
-		baby = GameObject.Find("Diff5");
-		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(3, 0));
-		}
-
-		baby = GameObject.Find("Diff6");
-		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(2, 0));
-		}
-
-		baby = GameObject.Find("Diff7");
-		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(1, 0));
-		}
-
-		baby = GameObject.Find("Diff8");
-		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(0, 0));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.dynamicDiff(0));
 		}
 
 		baby = GameObject.Find ("GA");
@@ -142,6 +119,11 @@ public class MenuManager : MonoBehaviour {
 		loadMe (2);
 	}
 
+	void dynamicDiff(int diffArea){
+		selectedDifficulty ((int) (diffScores[diffArea].x * diffInterval), 0);
+	}
+
+
 
 
 	public Vector2[] getFitScores(){
@@ -154,6 +136,10 @@ public class MenuManager : MonoBehaviour {
 			returnVal [q] = fitnessScores [q];
 		}
 		return returnVal;
+	}
+
+	int getDiffArea(int subDiff){
+		return subDiff / diffInterval;
 	}
 
 	/*
@@ -241,7 +227,7 @@ public class MenuManager : MonoBehaviour {
 	}
 
 	void selectedDifficulty(int diff, int levelToLoad){
-		player2 = diff;
+		player1 = diff;
 		mapSelected = GameObject.Find("MapSelect").GetComponent<Dropdown> ().value;
 		loadLevel (levelToLoad);
 	}
@@ -250,10 +236,23 @@ public class MenuManager : MonoBehaviour {
 		loadLevel (2);
 	}
 
-	void totoongInputTeamData(Team[] teams){
+	void totoongInputTeamData(Team[] teams, int diffToBeSaved){
 		if (runGA) {
 			textForGameOver = "Pitting " + player1 + " in generation " + generationCounter + "\n";
-			fitnessScores.Add(new Vector2(teams [1].getScore(), player1));
+			fitnessScores.Add (new Vector2 (teams [1].getScore (), player1));
+		} else {
+			diffToBeSaved = getDiffArea (diffToBeSaved);
+			if (diffScores [diffToBeSaved].y == 0)
+				diffScores [diffToBeSaved].y = teams [1].getScore ();
+			else{
+				if (diffScores [diffToBeSaved].y > teams [1].getScore ()) {
+					diffScores [diffToBeSaved].x = diffScores [diffToBeSaved].x - 1 < 0 ? 0 : diffScores [diffToBeSaved].x - 1;
+				}
+				else if (diffScores [diffToBeSaved].y < teams [1].getScore ()) {
+					diffScores [diffToBeSaved].x = diffScores [diffToBeSaved].x + 1 >= diffInterval ? diffInterval - 1 : diffScores [diffToBeSaved].x + 1;
+				}
+				diffScores [diffToBeSaved].y = ((diffScores [diffToBeSaved].y + teams [1].getScore ()) / 2.0f);
+			}
 		}
 		//Debug.Log ("SUsubukan ko nang bigyan ng information si menumanager");
 		foreach (Team t in teams) {
@@ -264,9 +263,9 @@ public class MenuManager : MonoBehaviour {
 			Debug.Log ("Bakit walang laman tong si kuya?");
 	}
 
-	public void inputTeamData(Team[] teams){
+	public void inputTeamData(Team[] teams, int babyKo){
 		//process the data from the teams
-		mm.totoongInputTeamData(teams);
+		mm.totoongInputTeamData(teams, babyKo);
 	}
 
 	public int getMapSelected(){
