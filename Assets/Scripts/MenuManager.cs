@@ -280,7 +280,7 @@ public class MenuManager : MonoBehaviour {
 		if (gaRunning() && player1 + 1 < popNum){
 			//rearrange the list of popweights
 			int currentIndex = player1;
-			while (currentIndex >= 1 && fitnessScores[currentIndex].x > fitnessScores[currentIndex - 1].x) {// > 2 para hindi ma-override yung nasa zero index
+			while (currentIndex >= 1 && fitnessScores[currentIndex].x > fitnessScores[currentIndex - 1].x) {
 				//switch
 				Vector2 temp = fitnessScores [currentIndex];
 				fitnessScores [currentIndex] = fitnessScores [currentIndex - 1];
@@ -290,6 +290,17 @@ public class MenuManager : MonoBehaviour {
 			player1++;
 		}
 		else if(gaRunning() && player1 + 1 >= popNum){
+			//save scores of current generation for statistics
+			string scores = "";
+			string popNumKo = "";
+			for (int q = 0; q < fitnessScores.Count; q++) {
+				scores += fitnessScores [q].x + " ";
+				popNumKo += fitnessScores [q].y + " ";
+			}
+			scores += "\n";
+			popNumKo += "\n";
+			System.IO.File.AppendAllText (UtilsKo.GAGenScores, generationCounter + "\n" + scores + popNumKo);
+
 			//=================================================================================================================================
 			//check the GAProtocols list for any protocol that needs to be used
 			//tempIntArray in this function will contain the necessary parameters for the GA protocols to be observed

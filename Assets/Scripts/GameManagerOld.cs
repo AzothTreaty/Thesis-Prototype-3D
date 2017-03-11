@@ -11,6 +11,7 @@ public static class UtilsKo{
 	public static string directionalMapFilePath = "DirectionalMap";
 	public static string NNConfigFilePath = "NeuralNetworkConfigurations.txt";
 	public static string GAConfigFilePath = "GAConfigurations.txt";
+	public static string GAGenScores = "GenScores.txt";
 	public static int tileH = 10;
 	public static int tileW = 10;
 	public static int numDiffs = 9;
@@ -222,7 +223,7 @@ public class GameManagerOld : MonoBehaviour{
 		return map;
 	}
 
-	public int[,] getDisplayInformation(int teamID){
+	public int[,] getDisplayInformation(){
 		return map.getEnvironmentDisplay ();
 	}
 
@@ -328,6 +329,17 @@ public class GameManagerOld : MonoBehaviour{
 		if (forGA) newRound();
 		else roundMaster.SetActive (true);
 
+	}
+
+	public int getOpponentHeading(int numNamin){
+		int returnVal = -1;
+		foreach (Team t in this.gameObject.GetComponents<Team>()) {
+			if (t.getID () != numNamin) {
+				returnVal = t.getBarkada ().getHead () == null ? -1 : t.getBarkada ().getHead ().getHeading ();
+				break;
+			}
+		}
+		return returnVal;
 	}
 
 	//this only checks for seat-based termination, nasa update() yung checking for time based termination
@@ -663,18 +675,6 @@ public class Map : MonoBehaviour{//Monobehaviour kasi kailangan ko yung "Instant
 											for (int t = 0; t < (currentArr.Length - 1); t++) {//put the original ones
 												newArr [t] = currentArr [t];
 											}
-											/*
-										System.out.println("Using y " + y);
-										System.out.print("Used array ");
-										for(int u = 0; u < currentArr.length; u++){
-											System.out.print(currentArr[u] + " ");
-										}
-										System.out.println(" ");
-										System.out.print("Adding array ");
-										for(int u = 0; u < newArr.length; u++){
-											System.out.print(newArr[u] + " ");
-										}
-										System.out.println(" ");*/
 											queue.Enqueue (newArr);
 										}
 									}
@@ -1363,7 +1363,7 @@ public class DQNAI : AI{
 
 	public override void think(){
 		//don't use the feature vectors yet, take note that it follows x, y convention
-		int [,] info = gm.getDisplayInformation (toControl.getID());
+		int [,] info = gm.getDisplayInformation ();
 
 		//transform the int[] input to a double[] general results
 		//current consolidation method is to get succeeding inputs to one input node
@@ -1400,7 +1400,8 @@ public class DQNAI : AI{
 			tempHold += (double)info [iY, iX];
 			counter++;
 		}
-		tempHold += (double) (toControl.getBarkada ().getHead ().getHeading ());
+		tempHold += (double) (toControl.getBarkada ().getHead () == null ? -1 : toControl.getBarkada ().getHead ().getHeading ());
+		genResults [numNodesInLayer [0] - 2] += (double) (gm.getOpponentHeading(toControl.getID())) / (double)(2.0);
 		genResults [numNodesInLayer [0] - 1] = tempHold / (double)(counter + 1);
 
 		//The neural network
