@@ -111,6 +111,17 @@ public class MenuManager : MonoBehaviour {
 		}
 	}
 
+	bool simpleBa(){
+		if (generationCounter < 500)
+			return true;
+		else
+			return false;
+	}
+
+	public bool isSimpleTraining(){
+		return mm == null ? true : mm.simpleBa ();
+	}
+
 	void stopGA(){
 		//just to consolidate the latest versions of the babies
 		player1 = popNum + 1;
@@ -292,14 +303,16 @@ public class MenuManager : MonoBehaviour {
 		else if(gaRunning() && player1 + 1 >= popNum){
 			//save scores of current generation for statistics
 			string scores = "";
-			string popNumKo = "";
 			for (int q = 0; q < fitnessScores.Count; q++) {
-				scores += fitnessScores [q].x + " ";
-				popNumKo += fitnessScores [q].y + " ";
+				for (int w = 0; w < fitnessScores.Count; w++) {
+					if (fitnessScores [w].y == q) {
+						scores += fitnessScores [w].x + " ";
+						break;
+					}
+				}
 			}
 			scores += "\n";
-			popNumKo += "\n";
-			System.IO.File.AppendAllText (UtilsKo.GAGenScores, generationCounter + "\n" + scores + popNumKo);
+			System.IO.File.AppendAllText (UtilsKo.GAGenScores, generationCounter + "\n" + scores);
 
 			//=================================================================================================================================
 			//check the GAProtocols list for any protocol that needs to be used
@@ -376,6 +389,10 @@ public class MenuManager : MonoBehaviour {
 			fitnessScores.Clear();
 			generationCounter++;
 			player1 = 0;
+			mapSelected = Random.Range (0, 3); 
+			Debug.Log ("map selected is now " + mapSelected);
+			Debug.Log ("\n");
+			Debug.Log ("\n");Debug.Log ("\n");Debug.Log ("\n");Debug.Log ("\n");Debug.Log ("\n");Debug.Log ("\n");Debug.Log ("\n");Debug.Log ("\n");
 		}
 	}
 

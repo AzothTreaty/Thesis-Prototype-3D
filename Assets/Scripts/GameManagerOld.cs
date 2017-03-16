@@ -96,8 +96,7 @@ public class GameManagerOld : MonoBehaviour{
 	HUDManager dm;
 	RoundManager rm;
 	bool paused, once;
-	public DQNAI ai;
-	public SPAI ai2;
+	public AI ai, ai2;
 	static GameManagerOld gm;
 	float tempTimerKo;//generalTimer should not be reset, just modulo it if you want to know if 30 seconds have passed
 	int numTeams, numRounds;
@@ -127,6 +126,7 @@ public class GameManagerOld : MonoBehaviour{
 		maps = new List<int[,]> ();
 		readMaps ();
 		//map.initialize (30, 20, 4);
+		Debug.Log("Hoy putangina ka talaga " + GetComponent<MenuManager> ().getMapSelected ());
 		map.initialize (maps [GetComponent<MenuManager> ().getMapSelected ()], forGA);
 
 		//initialize team
@@ -176,9 +176,18 @@ public class GameManagerOld : MonoBehaviour{
 		ai.setDS (GetComponent<MenuManager> ().getPlayer1 ());
 
 		if (forGA) {
-			this.gameObject.AddComponent<SPAI> ();
-			ai2 = GetComponent<SPAI> ();
-			ai2.init (this, 0);
+			if (GetComponent<MenuManager> ().isSimpleTraining ()) {
+				this.gameObject.AddComponent<SPAI> ();
+				ai2 = GetComponent<SPAI> ();
+				ai2.init (this, 0);
+
+			} else {
+				this.gameObject.AddComponent<DQNAI> ();
+				ai2 = GetComponents<DQNAI> ()[1];
+				ai2.init (this, 0);
+				Debug.Log ("Ang kalaban ko ay diff: " + GetComponent<MenuManager> ().getDifficulty ());
+				ai2.setDS (GetComponent<MenuManager> ().getDifficulty());
+			}
 			//para lang to sa DQNAI na ginagamit ko dati
 			//ai2.setDS (GetComponent<MenuManager> ().getPlayer1 ());
 		}
@@ -1182,6 +1191,12 @@ public class AI : MonoBehaviour{//mono dahil kailangan ng sariling update method
 	public virtual void think(){//choose a currentAction
 		currentAction = Random.Range (0, 3);
 	}
+	public virtual void setDS(int inputKo){
+
+	}
+	public virtual int getDS(){
+		return -1;
+	}
 	public virtual void learn(){
 		
 	}
@@ -1271,10 +1286,10 @@ public class DQNAI : AI{
 	//List<string> states;
 	//List<Vector2> memoryPool;//state index, learning rate, di na kailangan ang mga outputs kasi ang gusto ko lang ay i enhance siya by giving positive rewards
 	//kung baga binibigyan ko lang siya ng pat on the back na yung magnitude ay nakadepende sa lakas ng sapak
-	public int getDS(){
+	public override int getDS(){
 		return dS;
 	}
-	public void setDS(int y){
+	public override void setDS(int y){
 		dS = y;
 	}
 	/*
@@ -1344,7 +1359,7 @@ public class DQNAI : AI{
 	public override void doIt (){
 
 		result = UtilsKo.logFunc (result);
-		Debug.Log ("Hi, activated function is " + result);
+		//Debug.Log ("Hi, activated function is " + result);
 
 		//Debug.Log("Sum is " + sum
 		if (result < 0)
@@ -1364,6 +1379,7 @@ public class DQNAI : AI{
 	public override void think(){
 		//don't use the feature vectors yet, take note that it follows x, y convention
 		int [,] info = gm.getDisplayInformation ();
+		//Debug.Log ("Yung input ko ay may length na " + info.GetLength (0) + ", " + info.GetLength (1));
 
 		//transform the int[] input to a double[] general results
 		//current consolidation method is to get succeeding inputs to one input node
@@ -1378,7 +1394,9 @@ public class DQNAI : AI{
 			double tempHolder = 0;
 			for (int w = 0; w < numInputsPerNode; w++) {
 				if (iX >= info.GetLength (1) - 1) {
-					iY += 1;
+					if (iY >= info.GetLength (0) - 1)
+						break;
+					else iY += 1;
 					iX = 0;
 				} 
 				else iX += 1;
