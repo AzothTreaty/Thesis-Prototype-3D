@@ -1379,7 +1379,7 @@ public class DQNAI : AI{
 	public override void think(){
 		//don't use the feature vectors yet, take note that it follows x, y convention
 		int [,] info = gm.getDisplayInformation ();
-		//Debug.Log ("Yung input ko ay may length na " + info.GetLength (0) + ", " + info.GetLength (1));
+		Debug.Log ("Yung input ko ay may length na " + info.GetLength (0) + ", " + info.GetLength (1));
 
 		//transform the int[] input to a double[] general results
 		//current consolidation method is to get succeeding inputs to one input node

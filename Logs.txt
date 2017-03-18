@@ -3409,3 +3409,462 @@ Weights
 3/16/2017 12:06:27 PMStarting AI
 Reading weights from 3/16/2017 12:06:27 PMStarting AI
 Weights
+3/18/2017 6:33:25 AMStarting AI
+Reading weights from 3/18/2017 6:33:25 AMStarting AI
+Weights
+3/18/2017 6:33:30 AMStarting AI
+Reading weights from 3/18/2017 6:33:30 AMStarting AI
+Weights
+3/18/2017 6:33:35 AMStarting AI
+Reading weights from 3/18/2017 6:33:35 AMStarting AI
+Weights
+3/18/2017 6:33:40 AMStarting AI
+Reading weights from 3/18/2017 6:33:40 AMStarting AI
+Weights
+3/18/2017 6:33:45 AMStarting AI
+Reading weights from 3/18/2017 6:33:45 AMStarting AI
+Weights
+3/18/2017 6:33:49 AMStarting AI
+Reading weights from 3/18/2017 6:33:49 AMStarting AI
+Weights
+3/18/2017 6:33:54 AMStarting AI
+Reading weights from 3/18/2017 6:33:54 AMStarting AI
+Weights
+3/18/2017 6:33:59 AMStarting AI
+Reading weights from 3/18/2017 6:33:59 AMStarting AI
+Weights
+3/18/2017 6:34:03 AMStarting AI
+Reading weights from 3/18/2017 6:34:03 AMStarting AI
+Weights
+3/18/2017 6:34:07 AMStarting AI
+Reading weights from 3/18/2017 6:34:07 AMStarting AI
+Weights
+3/18/2017 6:34:12 AMStarting AI
+Reading weights from 3/18/2017 6:34:12 AMStarting AI
+Weights
+3/18/2017 6:34:16 AMStarting AI
+Reading weights from 3/18/2017 6:34:16 AMStarting AI
+Weights
+3/18/2017 6:34:20 AMStarting AI
+Reading weights from 3/18/2017 6:34:20 AMStarting AI
+Weights
+3/18/2017 6:34:25 AMStarting AI
+Reading weights from 3/18/2017 6:34:25 AMStarting AI
+Weights
+3/18/2017 6:34:30 AMStarting AI
+Reading weights from 3/18/2017 6:34:30 AMStarting AI
+Weights
+3/18/2017 6:34:33 AMStarting AI
+Reading weights from 3/18/2017 6:34:33 AMStarting AI
+Weights
+3/18/2017 6:34:38 AMStarting AI
+Reading weights from 3/18/2017 6:34:38 AMStarting AI
+Weights
+3/18/2017 6:34:42 AMStarting AI
+Reading weights from 3/18/2017 6:34:42 AMStarting AI
+Weights
+3/18/2017 6:34:47 AMStarting AI
+Reading weights from 3/18/2017 6:34:47 AMStarting AI
+Weights
+3/18/2017 6:34:53 AMStarting AI
+Reading weights from 3/18/2017 6:34:53 AMStarting AI
+Weights
+3/18/2017 6:34:59 AMStarting AI
+Reading weights from 3/18/2017 6:34:59 AMStarting AI
+Weights
+3/18/2017 6:35:03 AMStarting AI
+Reading weights from 3/18/2017 6:35:03 AMStarting AI
+Weights
+3/18/2017 6:35:07 AMStarting AI
+Reading weights from 3/18/2017 6:35:07 AMStarting AI
+Weights
+3/18/2017 6:35:10 AMStarting AI
+Reading weights from 3/18/2017 6:35:10 AMStarting AI
+Weights
+3/18/2017 6:35:16 AMStarting AI
+Reading weights from 3/18/2017 6:35:16 AMStarting AI
+Weights
+3/18/2017 6:35:19 AMStarting AI
+Reading weights from 3/18/2017 6:35:19 AMStarting AI
+Weights
+3/18/2017 6:35:23 AMStarting AI
+Reading weights from 3/18/2017 6:35:23 AMStarting AI
+Weights
+3/18/2017 6:35:27 AMStarting AI
+Reading weights from 3/18/2017 6:35:27 AMStarting AI
+Weights
+3/18/2017 6:35:31 AMStarting AI
+Reading weights from 3/18/2017 6:35:31 AMStarting AI
+Weights
+3/18/2017 6:35:36 AMStarting AI
+Reading weights from 3/18/2017 6:35:36 AMStarting AI
+Weights
+3/18/2017 6:35:44 AMStarting AI
+Reading weights from 3/18/2017 6:35:44 AMStarting AI
+Weights
+3/18/2017 6:35:48 AMStarting AI
+Reading weights from 3/18/2017 6:35:48 AMStarting AI
+Weights
+3/18/2017 6:35:52 AMStarting AI
+Reading weights from 3/18/2017 6:35:52 AMStarting AI
+Weights
+3/18/2017 6:35:56 AMStarting AI
+Reading weights from 3/18/2017 6:35:56 AMStarting AI
+Weights
+3/18/2017 6:36:00 AMStarting AI
+Reading weights from 3/18/2017 6:36:00 AMStarting AI
+Weights
+3/18/2017 6:36:05 AMStarting AI
+Reading weights from 3/18/2017 6:36:05 AMStarting AI
+Weights
+3/18/2017 6:36:09 AMStarting AI
+Reading weights from 3/18/2017 6:36:09 AMStarting AI
+Weights
+3/18/2017 6:36:14 AMStarting AI
+Reading weights from 3/18/2017 6:36:14 AMStarting AI
+Weights
+3/18/2017 6:36:19 AMStarting AI
+Reading weights from 3/18/2017 6:36:19 AMStarting AI
+Weights
+3/18/2017 6:36:23 AMStarting AI
+Reading weights from 3/18/2017 6:36:23 AMStarting AI
+Weights
+3/18/2017 6:36:27 AMStarting AI
+Reading weights from 3/18/2017 6:36:27 AMStarting AI
+Weights
+3/18/2017 6:36:32 AMStarting AI
+Reading weights from 3/18/2017 6:36:32 AMStarting AI
+Weights
+3/18/2017 6:36:36 AMStarting AI
+Reading weights from 3/18/2017 6:36:36 AMStarting AI
+Weights
+3/18/2017 6:36:40 AMStarting AI
+Reading weights from 3/18/2017 6:36:40 AMStarting AI
+Weights
+3/18/2017 6:36:45 AMStarting AI
+Reading weights from 3/18/2017 6:36:45 AMStarting AI
+Weights
+3/18/2017 6:36:51 AMStarting AI
+Reading weights from 3/18/2017 6:36:51 AMStarting AI
+Weights
+3/18/2017 6:36:56 AMStarting AI
+Reading weights from 3/18/2017 6:36:56 AMStarting AI
+Weights
+3/18/2017 6:37:02 AMStarting AI
+Reading weights from 3/18/2017 6:37:02 AMStarting AI
+Weights
+3/18/2017 6:37:08 AMStarting AI
+Reading weights from 3/18/2017 6:37:08 AMStarting AI
+Weights
+3/18/2017 6:37:13 AMStarting AI
+Reading weights from 3/18/2017 6:37:13 AMStarting AI
+Weights
+3/18/2017 6:37:19 AMStarting AI
+Reading weights from 3/18/2017 6:37:19 AMStarting AI
+Weights
+3/18/2017 6:37:21 AMStarting AI
+Reading weights from 3/18/2017 6:37:21 AMStarting AI
+Weights
+3/18/2017 6:37:25 AMStarting AI
+Reading weights from 3/18/2017 6:37:25 AMStarting AI
+Weights
+3/18/2017 6:37:29 AMStarting AI
+Reading weights from 3/18/2017 6:37:29 AMStarting AI
+Weights
+3/18/2017 6:37:34 AMStarting AI
+Reading weights from 3/18/2017 6:37:34 AMStarting AI
+Weights
+3/18/2017 6:37:38 AMStarting AI
+Reading weights from 3/18/2017 6:37:38 AMStarting AI
+Weights
+3/18/2017 6:37:42 AMStarting AI
+Reading weights from 3/18/2017 6:37:42 AMStarting AI
+Weights
+3/18/2017 6:37:45 AMStarting AI
+Reading weights from 3/18/2017 6:37:45 AMStarting AI
+Weights
+3/18/2017 6:37:50 AMStarting AI
+Reading weights from 3/18/2017 6:37:50 AMStarting AI
+Weights
+3/18/2017 6:37:54 AMStarting AI
+Reading weights from 3/18/2017 6:37:54 AMStarting AI
+Weights
+3/18/2017 6:37:59 AMStarting AI
+Reading weights from 3/18/2017 6:37:59 AMStarting AI
+Weights
+3/18/2017 6:38:04 AMStarting AI
+Reading weights from 3/18/2017 6:38:04 AMStarting AI
+Weights
+3/18/2017 6:38:08 AMStarting AI
+Reading weights from 3/18/2017 6:38:08 AMStarting AI
+Weights
+3/18/2017 6:38:13 AMStarting AI
+Reading weights from 3/18/2017 6:38:13 AMStarting AI
+Weights
+3/18/2017 6:38:17 AMStarting AI
+Reading weights from 3/18/2017 6:38:17 AMStarting AI
+Weights
+3/18/2017 6:38:22 AMStarting AI
+Reading weights from 3/18/2017 6:38:22 AMStarting AI
+Weights
+3/18/2017 6:38:26 AMStarting AI
+Reading weights from 3/18/2017 6:38:26 AMStarting AI
+Weights
+3/18/2017 6:38:32 AMStarting AI
+Reading weights from 3/18/2017 6:38:32 AMStarting AI
+Weights
+3/18/2017 6:38:36 AMStarting AI
+Reading weights from 3/18/2017 6:38:36 AMStarting AI
+Weights
+3/18/2017 6:38:40 AMStarting AI
+Reading weights from 3/18/2017 6:38:40 AMStarting AI
+Weights
+3/18/2017 6:38:45 AMStarting AI
+Reading weights from 3/18/2017 6:38:45 AMStarting AI
+Weights
+3/18/2017 6:38:49 AMStarting AI
+Reading weights from 3/18/2017 6:38:49 AMStarting AI
+Weights
+3/18/2017 6:38:53 AMStarting AI
+Reading weights from 3/18/2017 6:38:53 AMStarting AI
+Weights
+3/18/2017 6:38:58 AMStarting AI
+Reading weights from 3/18/2017 6:38:58 AMStarting AI
+Weights
+3/18/2017 6:39:02 AMStarting AI
+Reading weights from 3/18/2017 6:39:02 AMStarting AI
+Weights
+3/18/2017 6:39:08 AMStarting AI
+Reading weights from 3/18/2017 6:39:08 AMStarting AI
+Weights
+3/18/2017 6:39:13 AMStarting AI
+Reading weights from 3/18/2017 6:39:13 AMStarting AI
+Weights
+3/18/2017 6:39:18 AMStarting AI
+Reading weights from 3/18/2017 6:39:18 AMStarting AI
+Weights
+3/18/2017 6:39:24 AMStarting AI
+Reading weights from 3/18/2017 6:39:24 AMStarting AI
+Weights
+3/18/2017 6:39:30 AMStarting AI
+Reading weights from 3/18/2017 6:39:30 AMStarting AI
+Weights
+3/18/2017 6:39:35 AMStarting AI
+Reading weights from 3/18/2017 6:39:35 AMStarting AI
+Weights
+3/18/2017 6:39:40 AMStarting AI
+Reading weights from 3/18/2017 6:39:40 AMStarting AI
+Weights
+3/18/2017 6:39:45 AMStarting AI
+Reading weights from 3/18/2017 6:39:45 AMStarting AI
+Weights
+3/18/2017 6:39:49 AMStarting AI
+Reading weights from 3/18/2017 6:39:49 AMStarting AI
+Weights
+3/18/2017 6:39:54 AMStarting AI
+Reading weights from 3/18/2017 6:39:54 AMStarting AI
+Weights
+3/18/2017 6:39:58 AMStarting AI
+Reading weights from 3/18/2017 6:39:58 AMStarting AI
+Weights
+3/18/2017 6:40:04 AMStarting AI
+Reading weights from 3/18/2017 6:40:04 AMStarting AI
+Weights
+3/18/2017 6:40:09 AMStarting AI
+Reading weights from 3/18/2017 6:40:09 AMStarting AI
+Weights
+3/18/2017 6:43:05 AMStarting AI
+Reading weights from 3/18/2017 6:43:05 AMStarting AI
+Weights
+3/18/2017 7:12:46 AMStarting AI
+Reading weights from 3/18/2017 7:12:46 AMStarting AI
+Weights
+3/18/2017 7:12:59 AMStarting AI
+Reading weights from 3/18/2017 7:12:59 AMStarting AI
+Weights
+3/18/2017 7:13:04 AMStarting AI
+Reading weights from 3/18/2017 7:13:04 AMStarting AI
+Weights
+3/18/2017 7:13:09 AMStarting AI
+Reading weights from 3/18/2017 7:13:09 AMStarting AI
+Weights
+3/18/2017 7:13:14 AMStarting AI
+Reading weights from 3/18/2017 7:13:14 AMStarting AI
+Weights
+3/18/2017 7:13:19 AMStarting AI
+Reading weights from 3/18/2017 7:13:19 AMStarting AI
+Weights
+3/18/2017 7:13:24 AMStarting AI
+Reading weights from 3/18/2017 7:13:24 AMStarting AI
+Weights
+3/18/2017 7:13:29 AMStarting AI
+Reading weights from 3/18/2017 7:13:29 AMStarting AI
+Weights
+3/18/2017 7:13:35 AMStarting AI
+Reading weights from 3/18/2017 7:13:35 AMStarting AI
+Weights
+3/18/2017 7:13:40 AMStarting AI
+Reading weights from 3/18/2017 7:13:40 AMStarting AI
+Weights
+3/18/2017 7:13:45 AMStarting AI
+Reading weights from 3/18/2017 7:13:45 AMStarting AI
+Weights
+3/18/2017 7:13:49 AMStarting AI
+Reading weights from 3/18/2017 7:13:49 AMStarting AI
+Weights
+3/18/2017 7:13:55 AMStarting AI
+Reading weights from 3/18/2017 7:13:55 AMStarting AI
+Weights
+3/18/2017 7:13:59 AMStarting AI
+Reading weights from 3/18/2017 7:13:59 AMStarting AI
+Weights
+3/18/2017 7:14:02 AMStarting AI
+Reading weights from 3/18/2017 7:14:02 AMStarting AI
+Weights
+3/18/2017 7:14:07 AMStarting AI
+Reading weights from 3/18/2017 7:14:07 AMStarting AI
+Weights
+3/18/2017 7:14:11 AMStarting AI
+Reading weights from 3/18/2017 7:14:11 AMStarting AI
+Weights
+3/18/2017 7:14:16 AMStarting AI
+Reading weights from 3/18/2017 7:14:16 AMStarting AI
+Weights
+3/18/2017 7:14:21 AMStarting AI
+Reading weights from 3/18/2017 7:14:21 AMStarting AI
+Weights
+3/18/2017 7:14:26 AMStarting AI
+Reading weights from 3/18/2017 7:14:26 AMStarting AI
+Weights
+3/18/2017 7:14:31 AMStarting AI
+Reading weights from 3/18/2017 7:14:31 AMStarting AI
+Weights
+3/18/2017 7:14:35 AMStarting AI
+Reading weights from 3/18/2017 7:14:35 AMStarting AI
+Weights
+3/18/2017 7:14:39 AMStarting AI
+Reading weights from 3/18/2017 7:14:39 AMStarting AI
+Weights
+3/18/2017 7:14:44 AMStarting AI
+Reading weights from 3/18/2017 7:14:44 AMStarting AI
+Weights
+3/18/2017 7:14:48 AMStarting AI
+Reading weights from 3/18/2017 7:14:48 AMStarting AI
+Weights
+3/18/2017 7:14:53 AMStarting AI
+Reading weights from 3/18/2017 7:14:53 AMStarting AI
+Weights
+3/18/2017 7:14:57 AMStarting AI
+Reading weights from 3/18/2017 7:14:57 AMStarting AI
+Weights
+3/18/2017 7:15:00 AMStarting AI
+Reading weights from 3/18/2017 7:15:00 AMStarting AI
+Weights
+3/18/2017 7:15:04 AMStarting AI
+Reading weights from 3/18/2017 7:15:04 AMStarting AI
+Weights
+3/18/2017 7:15:08 AMStarting AI
+Reading weights from 3/18/2017 7:15:08 AMStarting AI
+Weights
+3/18/2017 7:15:13 AMStarting AI
+Reading weights from 3/18/2017 7:15:13 AMStarting AI
+Weights
+3/18/2017 7:15:17 AMStarting AI
+Reading weights from 3/18/2017 7:15:17 AMStarting AI
+Weights
+3/18/2017 7:15:21 AMStarting AI
+Reading weights from 3/18/2017 7:15:21 AMStarting AI
+Weights
+3/18/2017 7:15:25 AMStarting AI
+Reading weights from 3/18/2017 7:15:25 AMStarting AI
+Weights
+3/18/2017 7:15:29 AMStarting AI
+Reading weights from 3/18/2017 7:15:29 AMStarting AI
+Weights
+3/18/2017 7:15:33 AMStarting AI
+Reading weights from 3/18/2017 7:15:33 AMStarting AI
+Weights
+3/18/2017 7:15:36 AMStarting AI
+Reading weights from 3/18/2017 7:15:36 AMStarting AI
+Weights
+3/18/2017 7:15:40 AMStarting AI
+Reading weights from 3/18/2017 7:15:40 AMStarting AI
+Weights
+3/18/2017 7:15:44 AMStarting AI
+Reading weights from 3/18/2017 7:15:44 AMStarting AI
+Weights
+3/18/2017 7:15:48 AMStarting AI
+Reading weights from 3/18/2017 7:15:48 AMStarting AI
+Weights
+3/18/2017 7:15:52 AMStarting AI
+Reading weights from 3/18/2017 7:15:52 AMStarting AI
+Weights
+3/18/2017 7:15:55 AMStarting AI
+Reading weights from 3/18/2017 7:15:55 AMStarting AI
+Weights
+3/18/2017 7:16:00 AMStarting AI
+Reading weights from 3/18/2017 7:16:00 AMStarting AI
+Weights
+3/18/2017 7:16:05 AMStarting AI
+Reading weights from 3/18/2017 7:16:05 AMStarting AI
+Weights
+3/18/2017 7:16:08 AMStarting AI
+Reading weights from 3/18/2017 7:16:08 AMStarting AI
+Weights
+3/18/2017 7:16:12 AMStarting AI
+Reading weights from 3/18/2017 7:16:12 AMStarting AI
+Weights
+3/18/2017 7:16:17 AMStarting AI
+Reading weights from 3/18/2017 7:16:17 AMStarting AI
+Weights
+3/18/2017 7:16:21 AMStarting AI
+Reading weights from 3/18/2017 7:16:21 AMStarting AI
+Weights
+3/18/2017 7:16:26 AMStarting AI
+Reading weights from 3/18/2017 7:16:26 AMStarting AI
+Weights
+3/18/2017 7:16:32 AMStarting AI
+Reading weights from 3/18/2017 7:16:32 AMStarting AI
+Weights
+3/18/2017 7:16:36 AMStarting AI
+Reading weights from 3/18/2017 7:16:36 AMStarting AI
+Weights
+3/18/2017 7:16:42 AMStarting AI
+Reading weights from 3/18/2017 7:16:42 AMStarting AI
+Weights
+3/18/2017 7:16:46 AMStarting AI
+Reading weights from 3/18/2017 7:16:46 AMStarting AI
+Weights
+3/18/2017 7:16:50 AMStarting AI
+Reading weights from 3/18/2017 7:16:50 AMStarting AI
+Weights
+3/18/2017 7:16:54 AMStarting AI
+Reading weights from 3/18/2017 7:16:54 AMStarting AI
+Weights
+3/18/2017 7:16:59 AMStarting AI
+Reading weights from 3/18/2017 7:16:59 AMStarting AI
+Weights
+3/18/2017 7:17:03 AMStarting AI
+Reading weights from 3/18/2017 7:17:03 AMStarting AI
+Weights
+3/18/2017 7:17:08 AMStarting AI
+Reading weights from 3/18/2017 7:17:08 AMStarting AI
+Weights
+3/18/2017 7:17:11 AMStarting AI
+Reading weights from 3/18/2017 7:17:11 AMStarting AI
+Weights
+3/18/2017 7:17:16 AMStarting AI
+Reading weights from 3/18/2017 7:17:16 AMStarting AI
+Weights
+3/18/2017 7:17:22 AMStarting AI
+Reading weights from 3/18/2017 7:17:22 AMStarting AI
+Weights
+3/18/2017 7:17:27 AMStarting AI
+Reading weights from 3/18/2017 7:17:27 AMStarting AI
+Weights
+3/18/2017 7:17:32 AMStarting AI
+Reading weights from 3/18/2017 7:17:32 AMStarting AI
+Weights
+3/18/2017 7:17:36 AMStarting AI
+Reading weights from 3/18/2017 7:17:36 AMStarting AI
+Weights
