@@ -17,6 +17,7 @@ public class MenuManager : MonoBehaviour {
 	int popNum, numLayers, protocolIndex;
 	int[] nodesPerLayer;
 	List<Vector2> fitnessScores;
+	List<int> results;
 	Vector2[] diffScores;//index is the diffArea, x is the subDiff, y is the currentAverage score
 	int diffInterval;
 	List<List<double[]>> populationWeights;
@@ -166,6 +167,7 @@ public class MenuManager : MonoBehaviour {
 		tempStringArray = gaconfigurations.Split (' ');
 		populationWeights = new List<List<double[]>>();
 		fitnessScores = new List<Vector2> ();
+		results = new List<int> ();
 		popNum = int.Parse(tempStringArray[0]);
 		mutationRate = double.Parse(tempStringArray[1]);
 		crossoverRate = double.Parse(tempStringArray[2]);
@@ -251,6 +253,7 @@ public class MenuManager : MonoBehaviour {
 		if (runGA) {
 			textForGameOver = "Pitting " + player1 + " in generation " + generationCounter + "\n";
 			fitnessScores.Add (new Vector2 (teams [1].getScore (), player1));
+			results.Add (teams [1].getScore () > teams [0].getScore () ? 0 : 1);
 		} else {
 			diffToBeSaved = getDiffArea (diffToBeSaved);
 			if (diffScores [diffToBeSaved].y == 0)
@@ -306,13 +309,14 @@ public class MenuManager : MonoBehaviour {
 			for (int q = 0; q < fitnessScores.Count; q++) {
 				for (int w = 0; w < fitnessScores.Count; w++) {
 					if (fitnessScores [w].y == q) {
-						scores += fitnessScores [w].x + " ";
+						scores += fitnessScores [w].x + ";";
 						break;
 					}
 				}
+				scores += results [q] + (q == fitnessScores.Count - 1 ? "" : ";");
 			}
 			scores += "\n";
-			System.IO.File.AppendAllText (UtilsKo.GAGenScores, generationCounter + "\n" + scores);
+			System.IO.File.AppendAllText (UtilsKo.GAGenScores, scores);
 
 			//=================================================================================================================================
 			//check the GAProtocols list for any protocol that needs to be used
@@ -387,6 +391,7 @@ public class MenuManager : MonoBehaviour {
 
 			//clear the fitnessScore array just to be sure
 			fitnessScores.Clear();
+			results.Clear ();
 			generationCounter++;
 			player1 = 0;
 			mapSelected = Random.Range (0, 3); 
