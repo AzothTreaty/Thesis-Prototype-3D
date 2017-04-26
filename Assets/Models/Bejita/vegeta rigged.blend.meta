@@ -1,0 +1,513 @@
+fileFormatVersion: 2
+guid: bafa29013168fc548849ea675d8d607e
+timeCreated: 1493244690
+licenseType: Free
+ModelImporter:
+  serializedVersion: 19
+  fileIDToRecycleName:
+    100000: Armature
+    100002: armor
+    100004: Bone
+    100006: foot_L
+    100008: foot_R
+    100010: footcontroller_L
+    100012: footcontroller_R
+    100014: hair
+    100016: hand_L
+    100018: hand_R
+    100020: head
+    100022: if1_L
+    100024: if1_R
+    100026: if2_L
+    100028: if2_R
+    100030: if3_L
+    100032: if3_R
+    100034: legik_L
+    100036: legik_R
+    100038: lowerarm_L
+    100040: lowerarm_R
+    100042: lowerleg_L
+    100044: lowerleg_R
+    100046: mf1_L
+    100048: mf1_R
+    100050: mf2_L
+    100052: mf2_R
+    100054: mf3_L
+    100056: mf3_R
+    100058: neck
+    100060: pelwas
+    100062: pelwas_001
+    100064: rf1_L
+    100066: rf1_R
+    100068: rf2_L
+    100070: rf2_R
+    100072: rf3_L
+    100074: rf3_R
+    100076: ribs
+    100078: sf1_L
+    100080: sf1_R
+    100082: sf2_L
+    100084: sf2_R
+    100086: sf3_L
+    100088: sf3_R
+    100090: shoulder_L
+    100092: shoulder_R
+    100094: spine
+    100096: t1_L
+    100098: t1_R
+    100100: t2_L
+    100102: t2_R
+    100104: t3_L
+    100106: t3_R
+    100108: toe_L
+    100110: toe_R
+    100112: upperarm_L
+    100114: upperarm_R
+    100116: upperleg_L
+    100118: upperleg_R
+    100120: vegeta
+    100122: //RootNode
+    400000: Armature
+    400002: armor
+    400004: Bone
+    400006: foot_L
+    400008: foot_R
+    400010: footcontroller_L
+    400012: footcontroller_R
+    400014: hair
+    400016: hand_L
+    400018: hand_R
+    400020: head
+    400022: if1_L
+    400024: if1_R
+    400026: if2_L
+    400028: if2_R
+    400030: if3_L
+    400032: if3_R
+    400034: legik_L
+    400036: legik_R
+    400038: lowerarm_L
+    400040: lowerarm_R
+    400042: lowerleg_L
+    400044: lowerleg_R
+    400046: mf1_L
+    400048: mf1_R
+    400050: mf2_L
+    400052: mf2_R
+    400054: mf3_L
+    400056: mf3_R
+    400058: neck
+    400060: pelwas
+    400062: pelwas_001
+    400064: rf1_L
+    400066: rf1_R
+    400068: rf2_L
+    400070: rf2_R
+    400072: rf3_L
+    400074: rf3_R
+    400076: ribs
+    400078: sf1_L
+    400080: sf1_R
+    400082: sf2_L
+    400084: sf2_R
+    400086: sf3_L
+    400088: sf3_R
+    400090: shoulder_L
+    400092: shoulder_R
+    400094: spine
+    400096: t1_L
+    400098: t1_R
+    400100: t2_L
+    400102: t2_R
+    400104: t3_L
+    400106: t3_R
+    400108: toe_L
+    400110: toe_R
+    400112: upperarm_L
+    400114: upperarm_R
+    400116: upperleg_L
+    400118: upperleg_R
+    400120: vegeta
+    400122: //RootNode
+    2300000: hair
+    3300000: hair
+    4300000: vegeta
+    4300002: armor
+    4300004: hair
+    7400000: 
+    7400002: Walk
+    9500000: //RootNode
+    13700000: armor
+    13700002: vegeta
+  materials:
+    importMaterials: 1
+    materialName: 1
+    materialSearch: 0
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations:
+    - serializedVersion: 16
+      name: 
+      takeName: Default Take
+      firstFrame: -1
+      lastFrame: 23
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: Armature
+        weight: 1
+      - path: Armature/Bone
+        weight: 1
+      - path: Armature/Bone/footcontroller_L
+        weight: 1
+      - path: Armature/Bone/footcontroller_L/foot_L
+        weight: 1
+      - path: Armature/Bone/footcontroller_L/foot_L/legik_L
+        weight: 1
+      - path: Armature/Bone/footcontroller_L/foot_L/toe_L
+        weight: 1
+      - path: Armature/Bone/footcontroller_R
+        weight: 1
+      - path: Armature/Bone/footcontroller_R/foot_R
+        weight: 1
+      - path: Armature/Bone/footcontroller_R/foot_R/legik_R
+        weight: 1
+      - path: Armature/Bone/footcontroller_R/foot_R/toe_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/neck
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/neck/head
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/if1_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/if1_L/if2_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/if1_L/if2_L/if3_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/mf1_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/mf1_L/mf2_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/mf1_L/mf2_L/mf3_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/rf1_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/rf1_L/rf2_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/rf1_L/rf2_L/rf3_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/sf1_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/sf1_L/sf2_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/sf1_L/sf2_L/sf3_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/t1_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/t1_L/t2_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/t1_L/t2_L/t3_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/if1_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/if1_R/if2_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/if1_R/if2_R/if3_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/mf1_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/mf1_R/mf2_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/mf1_R/mf2_R/mf3_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/rf1_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/rf1_R/rf2_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/rf1_R/rf2_R/rf3_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/sf1_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/sf1_R/sf2_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/sf1_R/sf2_R/sf3_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/t1_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/t1_R/t2_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/t1_R/t2_R/t3_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/upperleg_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/upperleg_L/lowerleg_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/upperleg_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/upperleg_R/lowerleg_R
+        weight: 1
+      - path: armor
+        weight: 1
+      - path: hair
+        weight: 1
+      - path: vegeta
+        weight: 1
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: Walk
+      takeName: Walk
+      firstFrame: -1
+      lastFrame: 25
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask:
+      - path: 
+        weight: 1
+      - path: Armature
+        weight: 1
+      - path: Armature/Bone
+        weight: 1
+      - path: Armature/Bone/footcontroller_L
+        weight: 1
+      - path: Armature/Bone/footcontroller_L/foot_L
+        weight: 1
+      - path: Armature/Bone/footcontroller_L/foot_L/legik_L
+        weight: 1
+      - path: Armature/Bone/footcontroller_L/foot_L/toe_L
+        weight: 1
+      - path: Armature/Bone/footcontroller_R
+        weight: 1
+      - path: Armature/Bone/footcontroller_R/foot_R
+        weight: 1
+      - path: Armature/Bone/footcontroller_R/foot_R/legik_R
+        weight: 1
+      - path: Armature/Bone/footcontroller_R/foot_R/toe_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/neck
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/neck/head
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/if1_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/if1_L/if2_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/if1_L/if2_L/if3_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/mf1_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/mf1_L/mf2_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/mf1_L/mf2_L/mf3_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/rf1_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/rf1_L/rf2_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/rf1_L/rf2_L/rf3_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/sf1_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/sf1_L/sf2_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/sf1_L/sf2_L/sf3_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/t1_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/t1_L/t2_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_L/upperarm_L/lowerarm_L/hand_L/t1_L/t2_L/t3_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/if1_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/if1_R/if2_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/if1_R/if2_R/if3_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/mf1_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/mf1_R/mf2_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/mf1_R/mf2_R/mf3_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/rf1_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/rf1_R/rf2_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/rf1_R/rf2_R/rf3_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/sf1_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/sf1_R/sf2_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/sf1_R/sf2_R/sf3_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/t1_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/t1_R/t2_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/pelwas/spine/ribs/shoulder_R/upperarm_R/lowerarm_R/hand_R/t1_R/t2_R/t3_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/upperleg_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/upperleg_L/lowerleg_L
+        weight: 1
+      - path: Armature/Bone/pelwas_001/upperleg_R
+        weight: 1
+      - path: Armature/Bone/pelwas_001/upperleg_R/lowerleg_R
+        weight: 1
+      - path: armor
+        weight: 1
+      - path: hair
+        weight: 1
+      - path: vegeta
+        weight: 1
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
