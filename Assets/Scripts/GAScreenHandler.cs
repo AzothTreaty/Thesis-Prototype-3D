@@ -14,7 +14,7 @@ public class GAScreenHandler : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		gm.runGAKoBaby ();
-		string forText = "Running: " + gm.ai.getDS () + " vs " + gm.ai2.getDS () + "\n" + gm.getDisplayableTime () + "\nGeneration #" + mm.getGenCounter();
+		string forText = "Running: " + gm.ai.getDS() + " vs Standard AI\n" + gm.getDisplayableTime () + "\nGeneration #" + mm.getGenCounter();
 		foreach (Team t in GetComponents<Team>()) {
 			forText += "\nTeam " + t.getID () + ": " + t.getScore ();
 		}

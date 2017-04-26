@@ -14,9 +14,12 @@ public class MenuManager : MonoBehaviour {
 
 	//for GA
 	int generationCounter;
-	int popNum, alphaCurFitIndex, numLayers, protocolIndex;
+	int popNum, numLayers, protocolIndex;
 	int[] nodesPerLayer;
 	List<Vector2> fitnessScores;
+	List<int> results;
+	Vector2[] diffScores;//index is the diffArea, x is the subDiff, y is the currentAverage score
+	int diffInterval;
 	List<List<double[]>> populationWeights;
 	List<int[]> GAProtocols;
 	double mutationRate, crossoverRate, minNN, maxNN;
@@ -32,9 +35,13 @@ public class MenuManager : MonoBehaviour {
 		runGA = false;
 		player1 = -1;
 		player2 = 0;
-		alphaCurFitIndex = 0;
 		startCounting = false;
 		generationCounter = 0;
+		diffScores = new Vector2[3];
+		diffScores [0] = new Vector2 (0, 0);
+		diffScores [1] = new Vector2 (1, 0);
+		diffScores [2] = new Vector2 (2, 0);
+		diffInterval = 3;
 		GameObject baby = GameObject.Find ("DontKillMe");
 		if (baby != null) {
 			mm = baby.GetComponent<MenuManager>();
@@ -66,47 +73,17 @@ public class MenuManager : MonoBehaviour {
 		//for scene gameStart
 		baby = GameObject.Find("Diff0");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(8, 0));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.dynamicDiff(2));
 		}
 
 		baby = GameObject.Find("Diff1");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(7, 0));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.dynamicDiff(1));
 		}
 
 		baby = GameObject.Find("Diff2");
 		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(6, 0));
-		}
-
-		baby = GameObject.Find("Diff3");
-		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(5, 0));
-		}
-
-		baby = GameObject.Find("Diff4");
-		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(4, 0));
-		}
-
-		baby = GameObject.Find("Diff5");
-		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(3, 0));
-		}
-
-		baby = GameObject.Find("Diff6");
-		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(2, 0));
-		}
-
-		baby = GameObject.Find("Diff7");
-		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(1, 0));
-		}
-
-		baby = GameObject.Find("Diff8");
-		if (baby != null) {
-			baby.GetComponent<Button>().onClick.AddListener (() => mm.selectedDifficulty(0, 0));
+			baby.GetComponent<Button>().onClick.AddListener (() => mm.dynamicDiff(0));
 		}
 
 		baby = GameObject.Find ("GA");
@@ -135,6 +112,17 @@ public class MenuManager : MonoBehaviour {
 		}
 	}
 
+	bool simpleBa(){
+		if (generationCounter < 500)
+			return true;
+		else
+			return false;
+	}
+
+	public bool isSimpleTraining(){
+		return mm == null ? true : mm.simpleBa ();
+	}
+
 	void stopGA(){
 		//just to consolidate the latest versions of the babies
 		player1 = popNum + 1;
@@ -142,6 +130,11 @@ public class MenuManager : MonoBehaviour {
 		runGA = false;
 		loadMe (2);
 	}
+
+	void dynamicDiff(int diffArea){
+		selectedDifficulty ((int) (diffScores[diffArea].x * diffInterval), 0);
+	}
+
 
 
 
@@ -157,6 +150,10 @@ public class MenuManager : MonoBehaviour {
 		return returnVal;
 	}
 
+	int getDiffArea(int subDiff){
+		return subDiff / diffInterval;
+	}
+
 	/*
 	 * ============================================================================================================================================
 	 * TRY MO ICHECK KUNG GINAGAMIT DIN TONG STARTGA() PARA SA PAGRESUME NG GA, DAHIL HINDI SIYA DAPAT GINAGAMIT PARA DOON
@@ -170,6 +167,7 @@ public class MenuManager : MonoBehaviour {
 		tempStringArray = gaconfigurations.Split (' ');
 		populationWeights = new List<List<double[]>>();
 		fitnessScores = new List<Vector2> ();
+		results = new List<int> ();
 		popNum = int.Parse(tempStringArray[0]);
 		mutationRate = double.Parse(tempStringArray[1]);
 		crossoverRate = double.Parse(tempStringArray[2]);
@@ -180,7 +178,7 @@ public class MenuManager : MonoBehaviour {
 		for (int q = 1; q < tempStringArray.Length; q++) {//load the remaining protocols in order of starting-generationNumber, popNum, parentsKept, children made, and random samplings
 			tempStringArray2 = tempStringArray[q].Split(' ');
 			tempIntArray = new int[tempStringArray2.Length];
-			for (int qq = 0; q < tempStringArray2.Length; qq++) {
+			for (int qq = 0; qq < tempStringArray2.Length; qq++) {
 				tempIntArray [qq] = int.Parse (tempStringArray2[qq]);
 			}
 
@@ -219,8 +217,7 @@ public class MenuManager : MonoBehaviour {
 		}
 
 		runGA = true;
-		player1 = 1;
-		fitnessScores.Add (new Vector2 (0, 0));
+		player1 = 0;
 		selectedDifficulty (0, 3);
 	}
 
@@ -239,11 +236,11 @@ public class MenuManager : MonoBehaviour {
 	}
 
 	public int getPlayer1(){
-		return mm == null ? 1 : mm.player1;
+		return mm == null ? 0 : mm.player1;
 	}
 
 	void selectedDifficulty(int diff, int levelToLoad){
-		player2 = diff;
+		player1 = diff;
 		mapSelected = GameObject.Find("MapSelect").GetComponent<Dropdown> ().value;
 		loadLevel (levelToLoad);
 	}
@@ -252,25 +249,37 @@ public class MenuManager : MonoBehaviour {
 		loadLevel (2);
 	}
 
-	void totoongInputTeamData(Team[] teams){
+	void totoongInputTeamData(Team[] teams, int diffToBeSaved){
 		if (runGA) {
 			textForGameOver = "Pitting " + player1 + " in generation " + generationCounter + "\n";
-			//Debug.Log (alphaCurFitIndex);
-			fitnessScores [alphaCurFitIndex] = new Vector2(((fitnessScores [alphaCurFitIndex].x * player1) + teams [0].getScore ()) / (float)player1, 0);
-			fitnessScores.Add(new Vector2(teams [1].getScore(), player1));
+			fitnessScores.Add (new Vector2 (teams [1].getScore (), player1));
+			results.Add (teams [1].getScore () > teams [0].getScore () ? 0 : 1);
+		} else {
+			diffToBeSaved = getDiffArea (diffToBeSaved);
+			if (diffScores [diffToBeSaved].y == 0)
+				diffScores [diffToBeSaved].y = teams [1].getScore ();
+			else{
+				if (diffScores [diffToBeSaved].y > teams [1].getScore ()) {
+					diffScores [diffToBeSaved].x = diffScores [diffToBeSaved].x - 1 < 0 ? 0 : diffScores [diffToBeSaved].x - 1;
+				}
+				else if (diffScores [diffToBeSaved].y < teams [1].getScore ()) {
+					diffScores [diffToBeSaved].x = diffScores [diffToBeSaved].x + 1 >= diffInterval ? diffInterval - 1 : diffScores [diffToBeSaved].x + 1;
+				}
+				diffScores [diffToBeSaved].y = ((diffScores [diffToBeSaved].y + teams [1].getScore ()) / 2.0f);
+			}
 		}
-		Debug.Log ("SUsubukan ko nang bigyan ng information si menumanager");
+		//Debug.Log ("SUsubukan ko nang bigyan ng information si menumanager");
 		foreach (Team t in teams) {
 			textForGameOver += "Team " + t.getID () + " has seated " + t.getAcuSeated () + " and got " + t.getAcumulatedSplits () + " splits thereby gaining " + t.getScore () + " points\n";
-			Debug.Log ("Napalitan ko na");
+			//Debug.Log ("Napalitan ko na");
 		}
 		if (teams.Length == 0)
 			Debug.Log ("Bakit walang laman tong si kuya?");
 	}
 
-	public void inputTeamData(Team[] teams){
+	public void inputTeamData(Team[] teams, int babyKo){
 		//process the data from the teams
-		mm.totoongInputTeamData(teams);
+		mm.totoongInputTeamData(teams, babyKo);
 	}
 
 	public int getMapSelected(){
@@ -285,33 +294,44 @@ public class MenuManager : MonoBehaviour {
 		if (gaRunning() && player1 + 1 < popNum){
 			//rearrange the list of popweights
 			int currentIndex = player1;
-			while (currentIndex >= 1 && fitnessScores[currentIndex].x > fitnessScores[currentIndex - 1].x) {// > 2 para hindi ma-override yung nasa zero index
+			while (currentIndex >= 1 && fitnessScores[currentIndex].x > fitnessScores[currentIndex - 1].x) {
 				//switch
 				Vector2 temp = fitnessScores [currentIndex];
 				fitnessScores [currentIndex] = fitnessScores [currentIndex - 1];
 				fitnessScores [currentIndex - 1] = temp;
-				if (currentIndex - 1 == alphaCurFitIndex)//kasi nga nagswitch sila
-					alphaCurFitIndex = currentIndex;
-
 				currentIndex--;
 			}
 			player1++;
 		}
 		else if(gaRunning() && player1 + 1 >= popNum){
+			//save scores of current generation for statistics
+			string scores = "";
+			for (int q = 0; q < fitnessScores.Count; q++) {
+				for (int w = 0; w < fitnessScores.Count; w++) {
+					if (fitnessScores [w].y == q) {
+						scores += fitnessScores [w].x + ";";
+						break;
+					}
+				}
+				scores += results [q] + (q == fitnessScores.Count - 1 ? "" : ";");
+			}
+			scores += "\n";
+			System.IO.File.AppendAllText (UtilsKo.GAGenScores, scores);
+
 			//=================================================================================================================================
 			//check the GAProtocols list for any protocol that needs to be used
 			//tempIntArray in this function will contain the necessary parameters for the GA protocols to be observed
-			tempIntArray = GAProtocols[protocolIndex];
 			for (int q = 0; q < GAProtocols.Count; q++) {
 				if (GAProtocols [q] [0] > generationCounter) {
 					protocolIndex = q - 1;
 					break;
 				}
 			}
-			popNum = tempIntArray [0];
-			int numParents = tempIntArray [1];
-			int numChildren = tempIntArray [2];
-			int randomPeople = tempIntArray [3];
+			tempIntArray = GAProtocols[protocolIndex];
+			popNum = tempIntArray [1];
+			int numParents = tempIntArray [2];
+			int numChildren = tempIntArray [3];
+			int randomPeople = tempIntArray [4];
 
 
 			//gets the number of parents required or at least the number of parents with scores and adds them to the end of the populationWeights
@@ -320,10 +340,11 @@ public class MenuManager : MonoBehaviour {
 				//populationWeights.Add (populationWeights[(int)fitnessScores[q].y]);
 				qHolder = q;
 			}
-			Debug.Log ("Popweights count before removal: " + populationWeights.Count);
+			//Debug.Log ("Popweights count before removal: " + populationWeights.Count);
+			//Debug.Log ("PopNum is " + popNum);
 			//clears the rest of the list of the unneeded parents
-			populationWeights.RemoveRange (qHolder, popNum - (qHolder + 1));//qHolder + 1 because it denotes the actual count of the 'parents' that have scores
-			Debug.Log ("Popweights count after removal: " + populationWeights.Count);
+			populationWeights.RemoveRange (qHolder, popNum - (qHolder + 1));
+			//Debug.Log ("Popweights count after removal: " + populationWeights.Count);
 			
 
 			//generate children from existing parents and run crossover and mutation algorithms
@@ -370,10 +391,13 @@ public class MenuManager : MonoBehaviour {
 
 			//clear the fitnessScore array just to be sure
 			fitnessScores.Clear();
-			fitnessScores.Add (new Vector2 (0, 0));
+			results.Clear ();
 			generationCounter++;
-			player1 = 1;
-			alphaCurFitIndex = 0;
+			player1 = 0;
+			mapSelected = Random.Range (0, 3); 
+			Debug.Log ("map selected is now " + mapSelected);
+			Debug.Log ("\n");
+			Debug.Log ("\n");Debug.Log ("\n");Debug.Log ("\n");Debug.Log ("\n");Debug.Log ("\n");Debug.Log ("\n");Debug.Log ("\n");Debug.Log ("\n");
 		}
 	}
 
