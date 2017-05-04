@@ -137,6 +137,16 @@ public class Character : MonoBehaviour {// also acts a node in a linked list
 				}
 				chSIndex++;*/
 			} else {
+
+                if (currentDir == 0 || currentDir == 1)
+                {
+                    transform.Rotate(Vector3.right);
+                }
+                Debug.Log("Current Dir ko is: " + currentDir);
+                if (currentDir == 2 || currentDir == 3)
+                {
+                    transform.Rotate(Vector3.left);
+                }
                 //dito mo ako i-rotate
 				currentDir = dir;
 				//Debug.Log ("curDir is " + dir);

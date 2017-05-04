@@ -1,0 +1,195 @@
+fileFormatVersion: 2
+guid: 69f640f27be73ff46bc2629fe17648ad
+timeCreated: 1493940401
+licenseType: Free
+ModelImporter:
+  serializedVersion: 19
+  fileIDToRecycleName:
+    100000: Armature
+    100002: foot_L
+    100004: foot_R
+    100006: foottoe_L
+    100008: foottoe_R
+    100010: goku
+    100012: //RootNode
+    100014: hair
+    100016: hand_L
+    100018: hand_R
+    100020: head
+    100022: if1_L
+    100024: if1_R
+    100026: if2_L
+    100028: if2_R
+    100030: if3_L
+    100032: if3_R
+    100034: lowerarm_L
+    100036: lowerarm_R
+    100038: lowerleg_L
+    100040: lowerleg_R
+    100042: mf1_L
+    100044: mf1_R
+    100046: mf2_L
+    100048: mf2_R
+    100050: mf3_L
+    100052: mf3_R
+    100054: neck
+    100056: pelwas
+    100058: pelwas_001
+    100060: rf1_L
+    100062: rf1_R
+    100064: rf2_l
+    100066: rf2_r
+    100068: rf3_L
+    100070: rf3_R
+    100072: ribs
+    100074: sf1_L
+    100076: sf1_R
+    100078: sf2_L
+    100080: sf2_R
+    100082: sf3_L
+    100084: sf3_R
+    100086: shoulder_L
+    100088: shoulder_R
+    100090: spine
+    100092: t1_L
+    100094: t1_R
+    100096: t2_L
+    100098: t2_R
+    100100: t3_L
+    100102: t3_R
+    100104: upperarm_L
+    100106: upperarm_R
+    100108: upperleg_L
+    100110: upperleg_R
+    400000: Armature
+    400002: foot_L
+    400004: foot_R
+    400006: foottoe_L
+    400008: foottoe_R
+    400010: goku
+    400012: //RootNode
+    400014: hair
+    400016: hand_L
+    400018: hand_R
+    400020: head
+    400022: if1_L
+    400024: if1_R
+    400026: if2_L
+    400028: if2_R
+    400030: if3_L
+    400032: if3_R
+    400034: lowerarm_L
+    400036: lowerarm_R
+    400038: lowerleg_L
+    400040: lowerleg_R
+    400042: mf1_L
+    400044: mf1_R
+    400046: mf2_L
+    400048: mf2_R
+    400050: mf3_L
+    400052: mf3_R
+    400054: neck
+    400056: pelwas
+    400058: pelwas_001
+    400060: rf1_L
+    400062: rf1_R
+    400064: rf2_l
+    400066: rf2_r
+    400068: rf3_L
+    400070: rf3_R
+    400072: ribs
+    400074: sf1_L
+    400076: sf1_R
+    400078: sf2_L
+    400080: sf2_R
+    400082: sf3_L
+    400084: sf3_R
+    400086: shoulder_L
+    400088: shoulder_R
+    400090: spine
+    400092: t1_L
+    400094: t1_R
+    400096: t2_L
+    400098: t2_R
+    400100: t3_L
+    400102: t3_R
+    400104: upperarm_L
+    400106: upperarm_R
+    400108: upperleg_L
+    400110: upperleg_R
+    2300000: hair
+    3300000: hair
+    4300000: hair
+    4300002: goku
+    7400000: Default Take
+    7400002: Walk
+    9500000: //RootNode
+    13700000: goku
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
