@@ -51,3 +51,9 @@ Weights
 5/4/2017 10:54:00 PMStarting AI
 Reading weights from 5/4/2017 10:54:00 PMStarting AI
 Weights
+5/5/2017 3:29:10 AMStarting AI
+Reading weights from 5/5/2017 3:29:10 AMStarting AI
+Weights
+5/5/2017 3:31:51 AMStarting AI
+Reading weights from 5/5/2017 3:31:51 AMStarting AI
+Weights

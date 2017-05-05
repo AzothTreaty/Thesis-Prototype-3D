@@ -40,3 +40,8 @@ I have seated 4 characters from Team #0 giving me 0 open seats
 I have seated 2 characters from Team #0 giving me 3 open seats
 Started barkada of team #0 with 6 members and remaining 14
 Started barkada of team #1 with 5 members and remaining 15
+Started barkada of team #0 with 6 members and remaining 20
+Started barkada of team #1 with 5 members and remaining 20
+I have seated 5 characters from Team #1 giving me 4 open seats
+Started barkada of team #0 with 4 members and remaining 20
+Started barkada of team #1 with 5 members and remaining 20

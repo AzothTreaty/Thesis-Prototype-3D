@@ -471,7 +471,7 @@ public class GameManagerOld : MonoBehaviour{
 		UtilsKo.iterationCount++;
 	}
 	public static void makeAStranger(Tile tile1, Table tableKo){
-		GameObject temp = (GameObject)Instantiate (Resources.Load ("Prefabs/PlayerPrefab", typeof(GameObject)));
+		GameObject temp = (GameObject)Instantiate (Resources.Load ("Prefabs/StrangerPrefab", typeof(GameObject)));
 		strangersPool.Add(temp.GetComponent<Character> ().setUpStranger (gm, tableKo));//dapat mauna ang setUpStranger dahil kinacall nito to ang startProperly() ng character na ginamit dito
 		temp.GetComponent<Character> ().initializeMe (tile1, null);
 	}
